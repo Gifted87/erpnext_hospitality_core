@@ -1,0 +1,13 @@
+{
+ "creation": "2026-01-17 17:41:57.691399",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2026-01-17 17:41:57.691399",
+ "modified_by": "Administrator",
+ "module": "Hospitality Core",
+ "name": "Hospitality Analytics",
+ "owner": "Administrator",
+ "source_name": "Hospitality Analytics",
+ "timeseries": 1
+}

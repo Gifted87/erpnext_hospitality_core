@@ -29,17 +29,23 @@ def run_daily_audit():
             if process_single_reservation(res, posting_date):
                 count += 1
         except Exception as e:
-            frappe.log_error(f"Night Audit Failure for Reservation {res.name}: {str(e)}", "Night Audit Error")
+            # Truncate title to 140 characters to prevent CharacterLengthExceededError
+            error_title = f"Night Audit Error: {res.name}"
+            error_message = f"Night Audit Failure for Reservation {res.name}: {str(e)}"
+            frappe.log_error(error_message, error_title)
 
     if count > 0:
         frappe.msgprint(_("Auto-Bill (2 PM): Posted charges for {0} rooms.").format(count))
 
 def process_single_reservation(res, posting_date):
-    if getdate(res.departure_date) <= getdate(posting_date):
-        handle_overstay(res)
-
+    # First, check if already charged to avoid duplicates
     if already_charged_today(res.folio, posting_date, room=res.room):
         return False
+    
+    # Handle true overstays (departure was BEFORE today, not today)
+    # Guests departing today should still be charged for their final night
+    if getdate(res.departure_date) < getdate(posting_date):
+        handle_overstay(res)
 
     # Get Base Rate
     daily_rate = get_rate(res.rate_plan, res.room_type, posting_date)
@@ -68,11 +74,13 @@ def get_room_rent_item_codes():
 
 def handle_overstay(res):
     new_departure = add_days(nowdate(), 1)
-    # frappe.db.set_value("Hotel Reservation", res.name, "departure_date", new_departure)
+    # Use db.set_value to skip validation when auto-extending overstays
+    # This prevents conflicts with other reservations in the same room
+    frappe.db.set_value("Hotel Reservation", res.name, "departure_date", new_departure)
+    frappe.db.set_value("Hotel Reservation", res.name, "_user_tags", "Overstay")
+    # Add system comment to track the extension
     doc = frappe.get_doc("Hotel Reservation", res.name)
-    doc.departure_date = new_departure
     doc.add_comment("Info", _("Auto-Extended: Guest still in-house at 2 PM."))
-    doc.save(ignore_permissions=True)
 
 def get_rate(rate_plan, room_type, date):
     if not rate_plan:

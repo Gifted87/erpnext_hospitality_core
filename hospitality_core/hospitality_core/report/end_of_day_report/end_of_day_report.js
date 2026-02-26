@@ -12,7 +12,7 @@ frappe.query_reports["End of Day Report"] = {
             "label": __("Hotel Reception"),
             "fieldtype": "Link",
             "options": "Hotel Reception",
-            "reqd": 1
+            "reqd": 0
         }
     ]
 };

@@ -18,6 +18,7 @@ def execute(filters=None):
     # Filters
     date_from = filters.get("from_date")
     date_to = filters.get("to_date")
+    reception = filters.get("hotel_reception")
 
     # SQL Logic:
     # 1. Payment Entry must be Submitted (docstatus=1)
@@ -25,7 +26,11 @@ def execute(filters=None):
     # 3. Match Reference No to Guest Folio naming conventions (FOLIO-xxxxx or MASTER-xxxxx)
     #    OR checks if the reference_no actually exists in the Guest Folio table for robustness.
     
-    sql = """
+    conditions = ""
+    if reception:
+        conditions += " AND pe.hotel_reception = %(hotel_reception)s"
+
+    sql = f"""
         SELECT
             pe.name,
             pe.posting_date,
@@ -39,6 +44,7 @@ def execute(filters=None):
         WHERE
             pe.docstatus = 1
             AND pe.posting_date BETWEEN %(from_date)s AND %(to_date)s
+            {conditions}
             AND (
                 pe.reference_no LIKE 'FOLIO%%' 
                 OR pe.reference_no LIKE 'MASTER%%' 
@@ -49,7 +55,7 @@ def execute(filters=None):
             pe.mode_of_payment, pe.posting_date
     """
 
-    data = frappe.db.sql(sql, {"from_date": date_from, "to_date": date_to}, as_dict=True)
+    data = frappe.db.sql(sql, filters, as_dict=True)
 
     # Calculate Totals by Mode
     total_cash = sum(d.paid_amount for d in data if d.mode_of_payment == 'Cash')

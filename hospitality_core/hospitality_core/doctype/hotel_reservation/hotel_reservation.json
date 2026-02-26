@@ -16,6 +16,10 @@
         "folio",
         "arrival_date",
         "departure_date",
+        "arriving_from",
+        "departing_to",
+        "is_alien",
+        "passport_number",
         "section_break_financial",
         "rate_plan",
         "is_complimentary",
@@ -40,6 +44,7 @@
         {
             "fieldname": "hotel_reception",
             "fieldtype": "Link",
+            "ignore_user_permissions": 1,
             "in_filter": 1,
             "in_standard_filter": 1,
             "label": "Hotel Reception",
@@ -49,6 +54,7 @@
         {
             "fieldname": "reserved_by",
             "fieldtype": "Link",
+            "ignore_user_permissions": 1,
             "label": "Reserved By",
             "options": "User",
             "read_only": 1
@@ -56,6 +62,7 @@
         {
             "fieldname": "guest",
             "fieldtype": "Link",
+            "ignore_user_permissions": 1,
             "in_filter": 1,
             "in_global_search": 1,
             "in_list_view": 1,
@@ -119,6 +126,29 @@
             "reqd": 1
         },
         {
+            "fieldname": "arriving_from",
+            "fieldtype": "Data",
+            "label": "Arriving From"
+        },
+        {
+            "fieldname": "departing_to",
+            "fieldtype": "Data",
+            "label": "Departing To"
+        },
+        {
+            "default": "0",
+            "fieldname": "is_alien",
+            "fieldtype": "Check",
+            "label": "Alien (Foreign National)"
+        },
+        {
+            "depends_on": "eval:doc.is_alien==1",
+            "fieldname": "passport_number",
+            "fieldtype": "Data",
+            "label": "Passport Number",
+            "mandatory_depends_on": "eval:doc.is_alien==1"
+        },
+        {
             "fieldname": "section_break_financial",
             "fieldtype": "Section Break",
             "label": "Financial & Routing"
@@ -150,6 +180,13 @@
             "fieldname": "discount_value",
             "fieldtype": "Currency",
             "label": "Discount Value"
+        },
+        {
+            "default": "1",
+            "description": "If unchecked, Cashiers cannot post charges to this room.",
+            "fieldname": "allow_pos_posting",
+            "fieldtype": "Check",
+            "label": "Allow POS/F&B Posting"
         },
         {
             "default": "0",
@@ -230,6 +267,7 @@
             "create": 1,
             "email": 1,
             "export": 1,
+            "if_owner": 0,
             "print": 1,
             "read": 1,
             "report": 1,

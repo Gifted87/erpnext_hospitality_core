@@ -302,8 +302,8 @@ class HotelReservation(Document):
         """
         Transition: Reserved -> Cancelled
         """
-        if self.status != "Reserved":
-            frappe.throw(_("Only Reserved bookings can be Cancelled."))
+        if self.status not in ["Reserved", "Checked In"]:
+            frappe.throw(_("Only Reserved or Checked In bookings can be Cancelled."))
         
         self.db_set("status", "Cancelled")
         

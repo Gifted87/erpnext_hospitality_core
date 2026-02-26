@@ -6,7 +6,7 @@ def void_transaction(folio_transaction_name, reason_code):
     """
     Marks a transaction as Void.
     """
-    if not (frappe.has_role("Frontdesk Supervisor") or frappe.session.user == "Administrator"):
+    if not ("Frontdesk Supervisor" in frappe.get_roles() or frappe.session.user == "Administrator"):
         frappe.throw(_("Access Denied. Only Frontdesk Supervisors can void transactions."))
 
     # 1. Fetch Transaction
@@ -21,7 +21,7 @@ def void_transaction(folio_transaction_name, reason_code):
     # 2. Check Permissions / Approval
     reason_doc = frappe.get_doc("Allowance Reason Code", reason_code)
     if reason_doc.requires_manager_approval:
-        if not (frappe.has_role("Frontdesk Supervisor") or frappe.session.user == "Administrator"):
+        if not ("Frontdesk Supervisor" in frappe.get_roles() or frappe.session.user == "Administrator"):
             frappe.throw(_("This Reason Code requires Supervisor Approval."))
 
     # 3. Update Transaction

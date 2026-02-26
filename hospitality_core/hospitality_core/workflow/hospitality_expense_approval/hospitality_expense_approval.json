@@ -1,0 +1,61 @@
+{
+    "actions": [],
+    "creation": "2026-01-17 17:00:00",
+    "doctype": "Workflow",
+    "document_type": "Hospitality Expense",
+    "is_active": 1,
+    "modified": "2026-01-17 17:00:00",
+    "modified_by": "Administrator",
+    "module": "Hospitality Core",
+    "name": "Hospitality Expense Approval",
+    "override_status": 1,
+    "owner": "Administrator",
+    "send_email_alert": 1,
+    "states": [
+        {
+            "allow_edit": "Hospitality User",
+            "doc_status": 0,
+            "state": "Draft",
+            "update_field": "workflow_state"
+        },
+        {
+            "allow_edit": "Hospitality Manager",
+            "doc_status": 0,
+            "state": "Pending Approval",
+            "update_field": "workflow_state"
+        },
+        {
+            "allow_edit": "Hospitality Manager",
+            "doc_status": 1,
+            "state": "Approved",
+            "update_field": "workflow_state"
+        },
+        {
+            "allow_edit": "Hospitality Manager",
+            "doc_status": 2,
+            "state": "Rejected",
+            "update_field": "workflow_state"
+        }
+    ],
+    "transitions": [
+        {
+            "action": "Submit for Approval",
+            "allowed": "Hospitality User",
+            "next_state": "Pending Approval",
+            "state": "Draft"
+        },
+        {
+            "action": "Approve",
+            "allowed": "Hospitality Manager",
+            "next_state": "Approved",
+            "state": "Pending Approval"
+        },
+        {
+            "action": "Reject",
+            "allowed": "Hospitality Manager",
+            "next_state": "Rejected",
+            "state": "Pending Approval"
+        }
+    ],
+    "workflow_state_field": "workflow_state"
+}

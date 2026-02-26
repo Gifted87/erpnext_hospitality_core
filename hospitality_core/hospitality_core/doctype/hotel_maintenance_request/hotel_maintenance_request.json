@@ -1,97 +1,111 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "format:MNT-{room}-{YYYY}-{MM}-{####}",
- "creation": "2025-01-28 11:20:00.000000",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "room",
-  "issue_type",
-  "status",
-  "column_break_1",
-  "reported_by",
-  "creation",
-  "section_break_1",
-  "description",
-  "resolution_notes"
- ],
- "fields": [
-  {
-   "fieldname": "room",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Room",
-   "options": "Hotel Room",
-   "reqd": 1
-  },
-  {
-   "fieldname": "issue_type",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Issue Type",
-   "options": "Plumbing\nElectrical\nHVAC\nFurniture\nCleaning\nOther",
-   "reqd": 1
-  },
-  {
-   "default": "Reported",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Status",
-   "options": "Reported\nIn Progress\nCompleted\nCancelled",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "reported_by",
-   "fieldtype": "Link",
-   "label": "Reported By",
-   "options": "User",
-   "default": "user"
-  },
-  {
-   "fieldname": "section_break_1",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Text",
-   "label": "Description of Defect",
-   "reqd": 1
-  },
-  {
-   "fieldname": "resolution_notes",
-   "fieldtype": "Text",
-   "label": "Resolution Notes"
-  }
- ],
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-01-28 11:20:00.000000",
- "modified_by": "Administrator",
- "module": "Hospitality Core",
- "name": "Hotel Maintenance Request",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "read": 1,
-   "write": 1,
-   "role": "Hospitality User"
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "read": 1,
-   "write": 1,
-   "role": "System Manager"
-  }
- ],
- "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "format:MNT-{room}-{YYYY}-{MM}-{####}",
+    "creation": "2025-01-28 11:20:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "room",
+        "issue_type",
+        "status",
+        "column_break_1",
+        "reported_by",
+        "creation",
+        "column_break_cost",
+        "total_expenses",
+        "grand_total_expenses",
+        "section_break_1",
+        "description",
+        "resolution_notes"
+    ],
+    "fields": [
+        {
+            "fieldname": "room",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Room",
+            "options": "Hotel Room",
+            "reqd": 1
+        },
+        {
+            "fieldname": "issue_type",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Issue Type",
+            "options": "Plumbing\nElectrical\nHVAC\nFurniture\nCleaning\nOther",
+            "reqd": 1
+        },
+        {
+            "default": "Reported",
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Status",
+            "options": "Reported\nIn Progress\nCompleted\nCancelled",
+            "reqd": 1
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "reported_by",
+            "fieldtype": "Link",
+            "label": "Reported By",
+            "options": "User",
+            "default": "user"
+        },
+        {
+            "fieldname": "column_break_cost",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "total_expenses",
+            "fieldtype": "Currency",
+            "label": "Total Maintenance Cost",
+            "read_only": 1,
+            "description": "Total of all submitted expenses linked to this request"
+        },
+        {
+            "fieldname": "section_break_1",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "description",
+            "fieldtype": "Text",
+            "label": "Description of Defect",
+            "reqd": 1
+        },
+        {
+            "fieldname": "resolution_notes",
+            "fieldtype": "Text",
+            "label": "Resolution Notes"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2025-01-28 11:20:00.000000",
+    "modified_by": "Administrator",
+    "module": "Hospitality Core",
+    "name": "Hotel Maintenance Request",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "read": 1,
+            "write": 1,
+            "role": "Hospitality User"
+        },
+        {
+            "create": 1,
+            "delete": 1,
+            "read": 1,
+            "write": 1,
+            "role": "System Manager"
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "track_changes": 1
 }

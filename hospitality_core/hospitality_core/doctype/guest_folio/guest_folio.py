@@ -61,3 +61,36 @@ class GuestFolio(Document):
     def on_trash(self):
         if self.transactions:
             frappe.throw(_("Cannot delete a Folio that has transactions. Cancel it instead."))
+    
+    def has_permission(self, ptype="read", user=None):
+        """
+        Custom permission check for Guest Folio.
+        
+        This method overrides Frappe's default permission logic to ensure that
+        all Hospitality Users can access all guest folios, regardless of the
+        'reserved_by' field which links to the User doctype.
+        
+        Without this override, Frappe's User Permission system would restrict
+        access based on which User records a user can access, causing receptionists
+        to only see folios they created themselves.
+        
+        Args:
+            ptype: Permission type ('read', 'write', 'delete', etc.)
+            user: The user requesting access (defaults to current user)
+            
+        Returns:
+            True if access should be granted, False otherwise
+        """
+        if not user:
+            user = frappe.session.user
+        
+        # System Managers and Administrators always have full access
+        if "System Manager" in frappe.get_roles(user) or "Administrator" in frappe.get_roles(user):
+            return True
+        
+        # Hospitality Users should have access to all folios regardless of reserved_by
+        if "Hospitality User" in frappe.get_roles(user):
+            return True
+        
+        # For other roles, use default permission logic
+        return False

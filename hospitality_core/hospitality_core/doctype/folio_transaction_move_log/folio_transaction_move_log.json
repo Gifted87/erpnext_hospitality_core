@@ -1,0 +1,99 @@
+{
+    "actions": [],
+    "creation": "2026-02-03 03:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "transaction_name",
+        "source_folio",
+        "target_folio",
+        "item",
+        "amount",
+        "user",
+        "move_datetime"
+    ],
+    "fields": [
+        {
+            "fieldname": "transaction_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Transaction Name",
+            "read_only": 1
+        },
+        {
+            "fieldname": "source_folio",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Source Folio",
+            "options": "Guest Folio",
+            "read_only": 1
+        },
+        {
+            "fieldname": "target_folio",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Target Folio",
+            "options": "Guest Folio",
+            "read_only": 1
+        },
+        {
+            "fieldname": "item",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Item",
+            "options": "Item",
+            "read_only": 1
+        },
+        {
+            "fieldname": "amount",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Amount",
+            "read_only": 1
+        },
+        {
+            "fieldname": "user",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "User",
+            "options": "User",
+            "read_only": 1
+        },
+        {
+            "fieldname": "move_datetime",
+            "fieldtype": "Datetime",
+            "in_list_view": 1,
+            "label": "Move Datetime",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2026-02-03 03:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Hospitality Core",
+    "name": "Folio Transaction Move Log",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "read": 1,
+            "report": 1,
+            "role": "Frontdesk Supervisor"
+        }
+    ],
+    "sort_field": "move_datetime",
+    "sort_order": "DESC",
+    "states": []
+}

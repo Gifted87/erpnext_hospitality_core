@@ -1,0 +1,27 @@
+{
+    "charts": [],
+    "content": "[{\"id\":\"AN_FINAL\",\"type\":\"header\",\"data\":{\"text\":\"<div id='hos-v10-controls'></div><div class='row' style='margin-top: 20px;'><div class='col-sm-6'><div id='chart-occ' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-6'><div id='chart-adr' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-6'><div id='chart-revpar' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-6'><div id='chart-guest' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-12'><div id='chart-revext' class='v10-chart-box' style='height: 350px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-6'><div id='chart-gp' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-6'><div id='chart-exp' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-6'><div id='chart-reception' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-6'><div id='chart-payment' class='v10-chart-box' style='height: 300px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div><div class='col-sm-12'><div id='chart-maintenance' class='v10-chart-box' style='height: 350px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 20px;'></div></div></div>\",\"col\":12}}]",
+    "creation": "2026-01-17 21:05:00",
+    "docstatus": 0,
+    "doctype": "Workspace",
+    "icon": "trending-up",
+    "is_hidden": 0,
+    "label": "Hospitality Analytics",
+    "links": [],
+    "module": "Hospitality Core",
+    "name": "Hospitality Analytics",
+    "public": 1,
+    "roles": [
+        {
+            "role": "System Manager"
+        },
+        {
+            "role": "Hospitality Manager"
+        },
+        {
+            "role": "Desk User"
+        }
+    ],
+    "shortcuts": [],
+    "title": "Hospitality Analytics"
+}

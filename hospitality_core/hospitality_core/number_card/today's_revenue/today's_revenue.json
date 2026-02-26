@@ -1,0 +1,22 @@
+{
+ "creation": "2026-01-17 17:41:57.680157",
+ "currency": "NGN",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "function": "Sum",
+ "idx": 0,
+ "is_public": 0,
+ "is_standard": 1,
+ "label": "Today's Revenue",
+ "method": "hospitality_core.hospitality_core.dashboard_data.get_today_revenue",
+ "modified": "2026-01-17 17:41:57.680157",
+ "modified_by": "Administrator",
+ "module": "Hospitality Core",
+ "name": "Today's Revenue",
+ "owner": "Administrator",
+ "report_function": "Sum",
+ "show_full_number": 0,
+ "show_percentage_stats": 1,
+ "stats_time_interval": "Daily",
+ "type": "Custom"
+}

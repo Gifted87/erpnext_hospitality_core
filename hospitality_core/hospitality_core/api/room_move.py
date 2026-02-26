@@ -13,7 +13,7 @@ def process_room_move(reservation_name, new_room):
     5. Update Reservation and Folio.
     """
     
-    if not (frappe.has_role("Frontdesk Supervisor") or frappe.session.user == "Administrator"):
+    if not ("Frontdesk Supervisor" in frappe.get_roles() or frappe.session.user == "Administrator"):
         frappe.throw(_("Access Denied. Only Frontdesk Supervisors can move rooms."))
 
     res = frappe.get_doc("Hotel Reservation", reservation_name)

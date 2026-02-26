@@ -1,0 +1,67 @@
+/**
+ * Global Print Format Styles for Hospitality Core
+ * Sets default font size to 12pt for all printed documents
+ */
+
+/* Base font size for all print formats */
+.print-format,
+.print-format-gutter {
+    font-size: 12pt !important;
+}
+
+/* Ensure all text elements inherit the base font size */
+.print-format * {
+    font-size: inherit;
+}
+
+/* Standard headings in print formats */
+.print-format h1 {
+    font-size: 18pt !important;
+}
+
+.print-format h2 {
+    font-size: 16pt !important;
+}
+
+.print-format h3 {
+    font-size: 14pt !important;
+}
+
+.print-format h4 {
+    font-size: 13pt !important;
+}
+
+.print-format h5,
+.print-format h6 {
+    font-size: 12pt !important;
+}
+
+/* Table text */
+.print-format table {
+    font-size: 12pt !important;
+}
+
+.print-format table th,
+.print-format table td {
+    font-size: 12pt !important;
+}
+
+/* Paragraphs and general text */
+.print-format p,
+.print-format div,
+.print-format span {
+    font-size: 12pt !important;
+}
+
+/* Small text should be slightly smaller but still readable */
+.print-format small,
+.print-format .small {
+    font-size: 10pt !important;
+}
+
+/* Ensure labels and strong text maintain size */
+.print-format label,
+.print-format strong,
+.print-format b {
+    font-size: inherit !important;
+}

@@ -11,7 +11,11 @@ def execute(filters=None):
         {"label": _("Guest"), "fieldname": "guest_name", "fieldtype": "Data", "width": 150},
         {"label": _("Department / Item Group"), "fieldname": "item_group", "fieldtype": "Data", "width": 150},
         {"label": _("Description"), "fieldname": "description", "fieldtype": "Data", "width": 200},
-        {"label": _("Amount"), "fieldname": "amount", "fieldtype": "Currency", "width": 120}
+        {"label": _("Gross Amount"), "fieldname": "amount", "fieldtype": "Currency", "width": 120},
+        {"label": _("Net Amount"), "fieldname": "net_amount", "fieldtype": "Currency", "width": 120},
+        {"label": _("CT (5%)"), "fieldname": "ct_amount", "fieldtype": "Currency", "width": 100},
+        {"label": _("VAT (7.5%)"), "fieldname": "vat_amount", "fieldtype": "Currency", "width": 100},
+        {"label": _("SC (10%)"), "fieldname": "sc_amount", "fieldtype": "Currency", "width": 100}
     ]
 
     # Filters
@@ -32,7 +36,7 @@ def execute(filters=None):
          """
     
     if filters.get("hotel_reception"):
-        conditions += " AND res.hotel_reception = %(hotel_reception)s"
+        conditions += " AND (res.hotel_reception = %(hotel_reception)s OR gf.hotel_reception = %(hotel_reception)s)"
     
     sql = f"""
         SELECT
@@ -63,6 +67,15 @@ def execute(filters=None):
     
     data = frappe.db.sql(sql, filters, as_dict=True)
     
-
+    from hospitality_core.hospitality_core.api.accounting import get_tax_breakdown
+    
+    for row in data:
+        taxes = get_tax_breakdown(row.amount)
+        row.update({
+            "net_amount": taxes["net_amount"],
+            "ct_amount": taxes["ct_amount"],
+            "vat_amount": taxes["vat_amount"],
+            "sc_amount": taxes["sc_amount"]
+        })
 
     return columns, data

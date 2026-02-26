@@ -236,7 +236,7 @@ def move_transactions(transaction_names, target_folio):
     """
     Moves selected transactions from Source Folio to Target Folio.
     """
-    if not (frappe.has_role("Frontdesk Supervisor") or frappe.session.user == "Administrator"):
+    if not ("Frontdesk Supervisor" in frappe.get_roles() or frappe.session.user == "Administrator"):
         frappe.throw(_("Access Denied. Only Frontdesk Supervisors can move transactions."))
 
     if isinstance(transaction_names, str):
@@ -260,6 +260,19 @@ def move_transactions(transaction_names, target_folio):
             
         source_folio_name = txn.parent
         
+        # Log the move before updating parent
+        log = frappe.get_doc({
+            "doctype": "Folio Transaction Move Log",
+            "transaction_name": txn.name,
+            "source_folio": source_folio_name,
+            "target_folio": target_folio,
+            "item": txn.item,
+            "amount": txn.amount,
+            "user": frappe.session.user,
+            "move_datetime": frappe.utils.now_datetime()
+        })
+        log.insert(ignore_permissions=True)
+
         # Move: Update Parent
         frappe.db.set_value("Folio Transaction", txn.name, "parent", target_folio)
         

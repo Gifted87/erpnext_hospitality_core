@@ -237,18 +237,12 @@ function make_payment_entry(frm) {
 
         // Function to create payment entry with customer
         const create_payment = (customer) => {
-            frappe.ui.form.make_quick_entry('Payment Entry', (doc) => {
-                // Callback after successful creation
-                frappe.msgprint(`Payment ${doc.name} recorded.`);
-                frm.reload_doc();
-            }, null, {
-                // Pre-filled values for the Quick Entry Dialog
-                doctype: 'Payment Entry',
+            frappe.new_doc('Payment Entry', {
                 payment_type: 'Receive',
                 party_type: 'Customer',
                 party: customer,
-                party_name: customer,
                 paid_amount: frm.doc.outstanding_balance,
+                received_amount: frm.doc.outstanding_balance,
                 reference_no: frm.doc.name,
                 reference_date: frappe.datetime.now_date(),
                 remarks: `Payment from Guest: ${guest_name} (Folio: ${frm.doc.name})`

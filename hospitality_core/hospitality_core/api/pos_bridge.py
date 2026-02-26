@@ -19,7 +19,34 @@ def process_room_charge(doc, method=None):
         return
 
     # 2. Get the Room and Active Folio
-    if not hasattr(doc, 'hotel_room') or not doc.hotel_room:
+    if not doc.get("hotel_room"):
+        # FALLBACK: Try to find an active folio for this customer
+        customer = doc.get("customer")
+        if customer:
+            # 1. Try finding via direct company link on Folio
+            folios = frappe.get_all("Guest Folio", filters={
+                "status": "Open",
+                "company": customer
+            }, fields=["room", "name"])
+            
+            # 2. Try finding via Guest link if no direct company folio
+            if not folios:
+                guests = frappe.get_all("Guest", filters={"customer": customer}, fields=["name"])
+                if guests:
+                    folios = frappe.get_all("Guest Folio", filters={
+                        "status": "Open",
+                        "guest": ["in", [g.name for g in guests]]
+                    }, fields=["room", "name"])
+            
+            if len(folios) == 1:
+                doc.hotel_room = folios[0].room
+                # Update the document to persist the room back to DB
+                frappe.db.set_value(doc.doctype, doc.name, "hotel_room", doc.hotel_room)
+                frappe.msgprint(_("Auto-linked Room {0} from active Folio {1}").format(doc.hotel_room, folios[0].name))
+            elif len(folios) > 1:
+                 frappe.throw(_("Multiple active folios found for this customer ({0}). Please select a Room Number manually.").format(customer))
+                 
+    if not doc.get("hotel_room"):
         frappe.throw(_("Please select a Hotel Room for the Room Charge."))
 
     folio_name = frappe.db.get_value("Guest Folio", 
@@ -38,8 +65,13 @@ def process_room_charge(doc, method=None):
     bill_to = "Guest"
     res_name = frappe.db.get_value("Guest Folio", folio_name, "reservation")
     if res_name:
-        is_corp = frappe.db.get_value("Hotel Reservation", res_name, "is_company_guest")
-        if is_corp:
+        # Check if POS Posting is allowed for this reservation
+        res_details = frappe.db.get_value("Hotel Reservation", res_name, ["is_company_guest", "allow_pos_posting"], as_dict=True)
+        
+        if not res_details.allow_pos_posting:
+            frappe.throw(_("Room {0} is closed for POS Posting.").format(doc.hotel_room))
+
+        if res_details.is_company_guest:
             bill_to = "Company"
 
     # 5. POST EACH ITEM INDIVIDUALLY
@@ -112,3 +144,52 @@ def void_room_charge(doc, method=None):
             sync_folio_balance(frappe.get_doc("Guest Folio", folio_name))
 
     frappe.msgprint(_("Removed {0} items from Folio(s) due to POS Invoice cancellation.").format(len(transactions)))
+
+@frappe.whitelist()
+def get_guest_details_from_room(room_number):
+    """
+    Fetches the Customer linked to the currently active (Open) Guest Folio for a given room.
+    """
+    if not room_number:
+        return {}
+
+    # Find the Open Folio for this room
+    folio = frappe.db.get_value("Guest Folio", 
+        {"room": room_number, "status": "Open"}, 
+        ["name", "reservation"], 
+        as_dict=True
+    )
+
+    if not folio:
+        return {"error": _("No active check-in found for Room {0}").format(room_number)}
+
+    # Get the Customer from the Reservation
+    if not folio.reservation:
+        return {"error": _("No reservation linked to the active folio.")}
+
+    # Fetch Guest and Company details from Reservation
+    res_details = frappe.db.get_value("Hotel Reservation", folio.reservation, 
+        ["guest", "is_company_guest", "company"], as_dict=True)
+    
+    if not res_details:
+        return {"error": _("Reservation not found.")}
+
+    customer = None
+    customer_name = ""
+
+    if res_details.is_company_guest and res_details.company:
+        customer = res_details.company
+    elif res_details.guest:
+        # Fetch customer linked to the Guest
+        customer = frappe.db.get_value("Guest", res_details.guest, "customer")
+    
+    if not customer:
+        return {"error": _("No ERPNext Customer linked to the Guest/Reservation.")}
+        
+    customer_name = frappe.db.get_value("Customer", customer, "customer_name")
+
+    return {
+        "customer": customer,
+        "customer_name": customer_name,
+        "folio": folio.name
+    }

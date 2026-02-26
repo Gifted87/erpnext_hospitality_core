@@ -32,20 +32,22 @@ def get_columns():
 	]
 
 def get_data(filters):
-	if not filters or not filters.get("date") or not filters.get("hotel_reception"):
+	if not filters or not filters.get("date"):
 		return []
 
 	report_date = filters.get("date")
-	reception = filters.get("hotel_reception")
+	reception = filters.get("hotel_reception")  # Can be None for all receptions
 
 	data = []
 
 	# 1. New Check-ins
-	check_ins = frappe.db.count("Hotel Reservation", {
+	check_in_filters = {
 		"arrival_date": report_date,
-		"hotel_reception": reception,
-		"status": ["in", ["Checked In", "Checked Out"]] # Include those who checked out same day? usually yes for statistics
-	})
+		"status": ["in", ["Checked In", "Checked Out"]]
+	}
+	if reception:
+		check_in_filters["hotel_reception"] = reception
+	check_ins = frappe.db.count("Hotel Reservation", check_in_filters)
 	
 	# Refine Check-in query: Actually status could be 'Checked In' or 'Checked Out' if they left same day, 
 	# but primarily we want to know how many ARRIVED this day.
@@ -61,15 +63,23 @@ def get_data(filters):
 
 	# 2. Retained (Stay-overs)
 	# Guests who arrived BEFORE today and depart AFTER today.
-	# Status must be 'Checked In'.
-	retained = frappe.db.sql("""
-		SELECT count(name) FROM `tabHotel Reservation`
-		WHERE
-			arrival_date < %s
-			AND departure_date > %s
-			AND hotel_reception = %s
-			AND status = 'Checked In'
-	""", (report_date, report_date, reception))[0][0]
+	if reception:
+		retained = frappe.db.sql("""
+			SELECT count(name) FROM `tabHotel Reservation`
+			WHERE
+				arrival_date < %s
+				AND departure_date > %s
+				AND hotel_reception = %s
+				AND status IN ('Checked In', 'Checked Out')
+		""", (report_date, report_date, reception))[0][0]
+	else:
+		retained = frappe.db.sql("""
+			SELECT count(name) FROM `tabHotel Reservation`
+			WHERE
+				arrival_date < %s
+				AND departure_date > %s
+				AND status IN ('Checked In', 'Checked Out')
+		""", (report_date, report_date))[0][0]
 
 	data.append({
 		"metric": "Retained Guests",
@@ -78,11 +88,13 @@ def get_data(filters):
 	})
 
 	# 3. Departures (Check-outs)
-	top_departures = frappe.db.count("Hotel Reservation", {
+	departure_filters = {
 		"departure_date": report_date,
-		"hotel_reception": reception,
 		"status": "Checked Out"
-	})
+	}
+	if reception:
+		departure_filters["hotel_reception"] = reception
+	top_departures = frappe.db.count("Hotel Reservation", departure_filters)
 
 	data.append({
 		"metric": "Departures",
@@ -92,37 +104,81 @@ def get_data(filters):
 
 	# 4. Sales Consumption
 	# Sum of Folio Transactions posted on this date, linked to guests in this reception.
-	# We need to join Guest Folio to filter by Reception if Folio Transaction doesn't have it (it doesn't).
-	# Wait, Folio Transaction does NOT have reception. Guest Folio HAS reception.
-	
-	sales_consumption = frappe.db.sql("""
-		SELECT SUM(ft.amount)
-		FROM `tabFolio Transaction` ft
-		JOIN `tabGuest Folio` gf ON ft.parent = gf.name
-		WHERE
-			ft.posting_date = %s
-			AND gf.hotel_reception = %s
-			AND ft.is_void = 0
-            AND gf.docstatus < 2
-            AND (ft.reference_doctype != 'Payment Entry' OR ft.reference_doctype IS NULL)
-	""", (report_date, reception))[0][0] or 0.0
+	if reception:
+		sales_consumption = frappe.db.sql("""
+			SELECT SUM(ft.amount)
+			FROM `tabFolio Transaction` ft
+			JOIN `tabGuest Folio` gf ON ft.parent = gf.name
+			WHERE
+				ft.posting_date = %s
+				AND gf.hotel_reception = %s
+				AND ft.is_void = 0
+				AND gf.docstatus < 2
+				AND (ft.reference_doctype != 'Payment Entry' OR ft.reference_doctype IS NULL)
+		""", (report_date, reception))[0][0] or 0.0
+	else:
+		sales_consumption = frappe.db.sql("""
+			SELECT SUM(ft.amount)
+			FROM `tabFolio Transaction` ft
+			JOIN `tabGuest Folio` gf ON ft.parent = gf.name
+			WHERE
+				ft.posting_date = %s
+				AND ft.is_void = 0
+				AND gf.docstatus < 2
+				AND (ft.reference_doctype != 'Payment Entry' OR ft.reference_doctype IS NULL)
+		""", (report_date,))[0][0] or 0.0
 
 	data.append({
-		"metric": "Sales Consumption",
+		"metric": "Sales Consumption (Gross)",
 		"value": frappe.format_value(sales_consumption, currency=frappe.get_cached_value('Company',  frappe.defaults.get_user_default("Company"),  "default_currency")),
-		"description": "Total value of services/goods consumed and posted to folios."
+		"description": "Total value of services/goods consumed (Inclusive of Taxes)."
+	})
+
+	# Breakdown for Sales Consumption
+	from hospitality_core.hospitality_core.api.accounting import get_tax_breakdown
+	sales_taxes = get_tax_breakdown(sales_consumption)
+	company_currency = frappe.get_cached_value('Company', frappe.defaults.get_user_default("Company"), "default_currency")
+
+	data.append({
+		"metric": "  - Net Sales",
+		"value": frappe.format_value(sales_taxes["net_amount"], currency=company_currency),
+		"description": "Base revenue before taxes."
+	})
+	data.append({
+		"metric": "  - Consumption Tax (5%)",
+		"value": frappe.format_value(sales_taxes["ct_amount"], currency=company_currency),
+		"description": "5% Consumption Tax deduction."
+	})
+	data.append({
+		"metric": "  - VAT (7.5%)",
+		"value": frappe.format_value(sales_taxes["vat_amount"], currency=company_currency),
+		"description": "7.5% VAT deduction."
+	})
+	data.append({
+		"metric": "  - Service Charge (10%)",
+		"value": frappe.format_value(sales_taxes["sc_amount"], currency=company_currency),
+		"description": "10% Service Charge deduction."
 	})
 
 	# 5. Payment
 	# Sum of Payment Entries for this reception on this date.
-	payments = frappe.db.sql("""
-		SELECT SUM(paid_amount)
-		FROM `tabPayment Entry`
-		WHERE
-			posting_date = %s
-			AND hotel_reception = %s
-			AND docstatus = 1
-	""", (report_date, reception))[0][0] or 0.0
+	if reception:
+		payments = frappe.db.sql("""
+			SELECT SUM(paid_amount)
+			FROM `tabPayment Entry`
+			WHERE
+				posting_date = %s
+				AND hotel_reception = %s
+				AND docstatus = 1
+		""", (report_date, reception))[0][0] or 0.0
+	else:
+		payments = frappe.db.sql("""
+			SELECT SUM(paid_amount)
+			FROM `tabPayment Entry`
+			WHERE
+				posting_date = %s
+				AND docstatus = 1
+		""", (report_date,))[0][0] or 0.0
 
 	data.append({
 		"metric": "Total Payments",
@@ -132,11 +188,13 @@ def get_data(filters):
 
 	# 6. Analytics
 	# Occupancy = (Retained + New Check-ins) / Total Rooms in Reception
-	total_rooms = frappe.db.count("Hotel Room", {
-		"hotel_reception": reception,
+	room_filters = {
 		"is_enabled": 1,
-		"status": ["!=", "Out of Order"] 
-	})
+		"status": ["!=", "Out of Order"]
+	}
+	if reception:
+		room_filters["hotel_reception"] = reception
+	total_rooms = frappe.db.count("Hotel Room", room_filters)
 
 	occupancy_pct = 0.0
 	if total_rooms > 0:
@@ -148,6 +206,51 @@ def get_data(filters):
 		"metric": "Occupancy",
 		"value": f"{occupancy_pct:.2f}%",
 		"description": f"Occupancy Percentage ({retained + check_ins} occupied / {total_rooms} available rooms)."
+	})
+
+	# 7. Expenses
+	if reception:
+		expenses_by_cat = frappe.db.sql("""
+			SELECT expense_category, SUM(grand_total) as amount
+			FROM `tabHospitality Expense`
+			WHERE
+				expense_date = %s
+				AND hotel_reception = %s
+				AND docstatus = 1
+			GROUP BY expense_category
+		""", (report_date, reception), as_dict=1)
+	else:
+		expenses_by_cat = frappe.db.sql("""
+			SELECT expense_category, SUM(grand_total) as amount
+			FROM `tabHospitality Expense`
+			WHERE
+				expense_date = %s
+				AND docstatus = 1
+			GROUP BY expense_category
+		""", (report_date,), as_dict=1)
+
+	total_expenses = sum(e.amount for e in expenses_by_cat)
+	company_currency = frappe.get_cached_value('Company', frappe.defaults.get_user_default("Company"), "default_currency")
+
+	data.append({
+		"metric": "Total Expenses",
+		"value": frappe.format_value(total_expenses, currency=company_currency),
+		"description": "Total expenses logged for this date (including taxes)."
+	})
+
+	for exp in expenses_by_cat:
+		data.append({
+			"metric": f"  - {exp.expense_category}",
+			"value": frappe.format_value(exp.amount, currency=company_currency),
+			"description": f"Expenses for category {exp.expense_category}"
+		})
+
+	# 8. Net Profit/Loss
+	net_pl = sales_taxes["net_amount"] - total_expenses
+	data.append({
+		"metric": "Net Profit/Loss",
+		"value": frappe.format_value(net_pl, currency=company_currency),
+		"description": "Total Net Sales minus Total Expenses."
 	})
 	
 	return data

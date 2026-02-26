@@ -99,7 +99,12 @@ frappe.ui.form.on('Hotel Reservation', {
             }
 
             // CANCEL RESERVATION BUTTON
-            if (frm.doc.status === 'Reserved') {
+            // Visible for Reserved AND Checked In, Restricted to Supervisors
+            let is_supervisor = frappe.user_roles.includes('Frontdesk Supervisor') ||
+                frappe.user_roles.includes('System Manager') ||
+                frappe.session.user === 'Administrator';
+
+            if (['Reserved', 'Checked In'].includes(frm.doc.status) && is_supervisor) {
                 frm.add_custom_button(__('Cancel Reservation'), function () {
                     frappe.confirm(
                         'Are you sure you want to Cancel this Reservation?',
@@ -119,7 +124,7 @@ frappe.ui.form.on('Hotel Reservation', {
                             });
                         }
                     );
-                }, __('Actions'));
+                }, null).addClass('btn-danger'); // Add class for styling if possible, or just standard custom button
             }
 
             // Quick Access to Folio
@@ -131,18 +136,30 @@ frappe.ui.form.on('Hotel Reservation', {
 
             // Read-Only Logic for Checked In, Checked Out, and Cancelled
             if (['Checked In', 'Checked Out', 'Cancelled'].includes(frm.doc.status)) {
-                frm.set_read_only();
-
                 let exceptions = [];
                 if (frm.doc.status === 'Checked In') {
                     exceptions = ['departure_date', 'discount_value'];
                 }
 
-                // Force individual field properties to ensure they are locked/unlocked correctly
+                // Selectively lock fields WITHOUT calling frm.set_read_only()
+                // which would hide the save button and cause issues
                 if (frm.fields_dict) {
                     Object.keys(frm.fields_dict).forEach(fieldname => {
+                        let field = frm.fields_dict[fieldname];
+                        // Skip non-data fields
+                        if (!field || !field.df) return;
+
                         let is_readonly = !exceptions.includes(fieldname);
                         frm.set_df_property(fieldname, 'read_only', is_readonly ? 1 : 0);
+                    });
+                }
+            } else {
+                // Ensure all fields are editable when status is not in restricted states
+                if (frm.fields_dict) {
+                    Object.keys(frm.fields_dict).forEach(fieldname => {
+                        let field = frm.fields_dict[fieldname];
+                        if (!field || !field.df) return;
+                        frm.set_df_property(fieldname, 'read_only', 0);
                     });
                 }
             }

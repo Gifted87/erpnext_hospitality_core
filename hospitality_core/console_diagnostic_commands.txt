@@ -1,0 +1,35 @@
+"""
+Commands to run in bench console to diagnose Guest Folio permissions:
+
+frappe.init(site='185.170.58.232')
+frappe.connect()
+
+# Check DocPerm settings
+perms = frappe.db.sql(\"\"\"
+    SELECT role, `read`, `write`, `create`, `delete`, if_owner
+    FROM `tabDocPerm`
+    WHERE parent = 'Guest Folio'
+    ORDER BY role
+\"\"\", as_dict=True)
+
+for perm in perms:
+    print(f"Role: {perm.role}, Read: {perm.read}, Write: {perm.write}, If Owner: {perm.if_owner}")
+
+# Check User Permissions for Guest Folio
+user_perms = frappe.db.sql(\"\"\"
+    SELECT user, allow, for_value
+    FROM `tabUser Permission`
+    WHERE allow = 'Guest Folio'
+\"\"\", as_dict=True)
+
+print(f"User Permissions for Guest Folio: {user_perms}")
+
+# Check User Permissions for User doctype
+user_perms_on_user = frappe.db.sql(\"\"\"
+    SELECT user, allow, for_value
+    FROM `tabUser Permission`
+    WHERE allow = 'User'
+\"\"\", as_dict=True)
+
+print(f"User Permissions for User doctype: {user_perms_on_user}")
+"""

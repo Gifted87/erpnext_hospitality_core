@@ -1,0 +1,129 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-01-17 16:15:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "receivable_account",
+        "income_suspense_account",
+        "income_account",
+        "cost_center",
+        "consumption_tax_account",
+        "vat_account",
+        "service_charge_account",
+        "section_break_printing",
+        "enable_auto_print",
+        "receipt_print_format",
+        "print_copies"
+    ],
+    "fields": [
+        {
+            "fieldname": "receivable_account",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Receivable Account",
+            "options": "Account",
+            "reqd": 1
+        },
+        {
+            "fieldname": "income_suspense_account",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Income Suspense Account",
+            "options": "Account",
+            "reqd": 1,
+            "description": "Account where revenue is held until payment is made (e.g., Unearned Revenue)."
+        },
+        {
+            "fieldname": "income_account",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Income Account",
+            "options": "Account",
+            "reqd": 1
+        },
+        {
+            "fieldname": "cost_center",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Cost Center",
+            "options": "Cost Center",
+            "reqd": 1
+        },
+        {
+            "fieldname": "consumption_tax_account",
+            "fieldtype": "Link",
+            "label": "Consumption Tax Account",
+            "options": "Account",
+            "reqd": 1
+        },
+        {
+            "fieldname": "vat_account",
+            "fieldtype": "Link",
+            "label": "VAT Account",
+            "options": "Account",
+            "reqd": 1
+        },
+        {
+            "fieldname": "service_charge_account",
+            "fieldtype": "Link",
+            "label": "Service Charge Account",
+            "options": "Account",
+            "reqd": 1
+        },
+        {
+            "fieldname": "section_break_printing",
+            "fieldtype": "Section Break",
+            "label": "Automatic Printing"
+        },
+        {
+            "fieldname": "enable_auto_print",
+            "fieldtype": "Check",
+            "label": "Enable Automatic Receipt Printing",
+            "default": 0,
+            "description": "Automatically print receipts to the system's default printer when a POS Invoice is submitted"
+        },
+        {
+            "fieldname": "receipt_print_format",
+            "fieldtype": "Link",
+            "label": "Receipt Print Format",
+            "options": "Print Format",
+            "description": "Custom print format for receipts (leave blank to use default POS Invoice format)",
+            "depends_on": "enable_auto_print"
+        },
+        {
+            "fieldname": "print_copies",
+            "fieldtype": "Int",
+            "label": "Number of Copies to Print",
+            "default": 3,
+            "description": "Number of receipt copies to print automatically",
+            "depends_on": "enable_auto_print"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "issingle": 1,
+    "links": [],
+    "modified": "2026-01-17 16:15:00.000000",
+    "modified_by": "Administrator",
+    "module": "Hospitality Core",
+    "name": "Hospitality Accounting Settings",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

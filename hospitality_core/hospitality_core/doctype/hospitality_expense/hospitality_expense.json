@@ -1,0 +1,213 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "EXP-.YYYY.-.#####",
+    "creation": "2026-01-17 16:45:00",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "expense_date",
+        "workflow_state",
+        "expense_category",
+        "expense_account",
+        "supplier",
+        "external_reference",
+        "column_break_1",
+        "paid_via",
+        "payment_account",
+        "hotel_reception",
+        "company",
+        "section_break_1",
+        "amount",
+        "total_taxes",
+        "grand_total",
+        "is_paid",
+        "section_break_taxes",
+        "taxes",
+        "section_break_details",
+        "description",
+        "maintenance_request",
+        "cost_center",
+        "amended_from"
+    ],
+    "fields": [
+        {
+            "default": "Today",
+            "fieldname": "expense_date",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "Expense Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "workflow_state",
+            "fieldtype": "Link",
+            "label": "Status",
+            "options": "Workflow State",
+            "read_only": 1
+        },
+        {
+            "fieldname": "expense_category",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Expense Category",
+            "options": "Expense Category",
+            "reqd": 1
+        },
+        {
+            "fieldname": "expense_account",
+            "fieldtype": "Link",
+            "label": "Expense Account",
+            "options": "Account",
+            "read_only": 1
+        },
+        {
+            "fieldname": "supplier",
+            "fieldtype": "Link",
+            "label": "Supplier",
+            "options": "Supplier"
+        },
+        {
+            "fieldname": "external_reference",
+            "fieldtype": "Data",
+            "label": "External Reference (Invoice/Receipt #)"
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "paid_via",
+            "fieldtype": "Link",
+            "label": "Paid Via (Mode of Payment)",
+            "options": "Mode of Payment",
+            "reqd": 1
+        },
+        {
+            "fieldname": "payment_account",
+            "fieldtype": "Link",
+            "label": "Payment Account",
+            "options": "Account",
+            "description": "Auto-fetched from Mode of Payment if empty"
+        },
+        {
+            "fieldname": "hotel_reception",
+            "fieldtype": "Link",
+            "label": "Hotel Reception",
+            "options": "Hotel Reception"
+        },
+        {
+            "fieldname": "company",
+            "fieldtype": "Link",
+            "label": "Company",
+            "options": "Company",
+            "reqd": 1,
+            "default": "Edo Heritage Hotel"
+        },
+        {
+            "fieldname": "section_break_1",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "amount",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Net Amount",
+            "reqd": 1
+        },
+        {
+            "fieldname": "total_taxes",
+            "fieldtype": "Currency",
+            "label": "Total Taxes",
+            "read_only": 1
+        },
+        {
+            "fieldname": "grand_total",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Grand Total",
+            "read_only": 1
+        },
+        {
+            "default": "1",
+            "fieldname": "is_paid",
+            "fieldtype": "Check",
+            "label": "Is Paid"
+        },
+        {
+            "fieldname": "section_break_taxes",
+            "fieldtype": "Section Break",
+            "label": "Taxes"
+        },
+        {
+            "fieldname": "taxes",
+            "fieldtype": "Table",
+            "label": "Taxes and Charges",
+            "options": "Hospitality Expense Tax"
+        },
+        {
+            "fieldname": "section_break_details",
+            "fieldtype": "Section Break",
+            "label": "Additional Details"
+        },
+        {
+            "fieldname": "description",
+            "fieldtype": "Small Text",
+            "label": "Description"
+        },
+        {
+            "fieldname": "maintenance_request",
+            "fieldtype": "Link",
+            "label": "Maintenance Request",
+            "options": "Hotel Maintenance Request"
+        },
+        {
+            "fieldname": "cost_center",
+            "fieldtype": "Link",
+            "label": "Cost Center",
+            "options": "Cost Center"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Hospitality Expense",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "modified": "2026-01-17 16:45:00",
+    "modified_by": "Administrator",
+    "module": "Hospitality Core",
+    "name": "Hospitality Expense",
+    "naming_rule": "Expression (old style)",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "submit": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "read": 1,
+            "role": "Hospitality Manager",
+            "submit": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}
