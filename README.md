@@ -198,7 +198,7 @@ The application includes a suite of script reports designed to provide actionabl
 ### Installation Steps
 1.  **Get the App:** Navigate to your `frappe-bench` directory and run:
     ```bash
-    bench get-app hospitality_core https://github.com/YOUR_USERNAME/hospitality_core.git
+    bench get-app hospitality_core https://github.com/Gifted87/erpnext_hospitality_core.git
     ```
 2.  **Install App on Site:**
     ```bash
