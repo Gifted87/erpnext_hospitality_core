@@ -22,7 +22,7 @@ bench --site [your-site-name] console
 Then execute:
 
 ```python
-from hospitality_core.setup.composite_item_setup import setup_composite_item_fields
+from hospitality_core.setup_script.composite_item_setup import setup_composite_item_fields
 setup_composite_item_fields()
 exit()
 ```
@@ -181,7 +181,7 @@ bench --site [site] clear-cache
 **Solution:** Run the custom field setup again:
 ```bash
 bench --site [site] console
-from hospitality_core.setup.composite_item_setup import setup_composite_item_fields
+from hospitality_core.setup_script.composite_item_setup import setup_composite_item_fields
 setup_composite_item_fields()
 ```
 
