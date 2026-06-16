@@ -2,6 +2,7 @@
  "align_labels_right": 0,
  "creation": "2025-01-28 14:00:00.000000",
  "custom_format": 1,
+ "default_print_format": 1,
  "doc_type": "Guest Folio",
  "docstatus": 0,
  "doctype": "Print Format",

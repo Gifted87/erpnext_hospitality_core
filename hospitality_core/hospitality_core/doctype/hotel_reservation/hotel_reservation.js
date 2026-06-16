@@ -17,6 +17,9 @@ frappe.ui.form.on('Hotel Reservation', {
         }
     },
     refresh: function (frm) {
+        // Keep room type aligned with the selected room on load and refresh.
+        sync_room_type_from_room(frm);
+
         // Filter Rooms based on Room Type AND Availability
         frm.set_query('room', function () {
             return {
@@ -73,7 +76,7 @@ frappe.ui.form.on('Hotel Reservation', {
                     // Nice Confirmation Dialog
                     frappe.warn(
                         'Confirm Checkout',
-                        `Are you sure you want to Check Out <b>${frm.doc.guest}</b> from Room <b>${frm.doc.room}</b>?<br><br>This will close the folio and mark the room as Dirty.`,
+                        `Are you sure you want to Check Out <b>${frm.doc.guest}</b> from Room <b>${frm.doc.room}</b>?<br><br>This will close the folio and mark the room as Available.`,
                         function () {
                             frm.call({
                                 method: 'check_out_guest',
@@ -134,36 +137,10 @@ frappe.ui.form.on('Hotel Reservation', {
                 }, 'View');
             }
 
-            // Read-Only Logic for Checked In, Checked Out, and Cancelled
-            if (['Checked In', 'Checked Out', 'Cancelled'].includes(frm.doc.status)) {
-                let exceptions = [];
-                if (frm.doc.status === 'Checked In') {
-                    exceptions = ['departure_date', 'discount_value'];
-                }
-
-                // Selectively lock fields WITHOUT calling frm.set_read_only()
-                // which would hide the save button and cause issues
-                if (frm.fields_dict) {
-                    Object.keys(frm.fields_dict).forEach(fieldname => {
-                        let field = frm.fields_dict[fieldname];
-                        // Skip non-data fields
-                        if (!field || !field.df) return;
-
-                        let is_readonly = !exceptions.includes(fieldname);
-                        frm.set_df_property(fieldname, 'read_only', is_readonly ? 1 : 0);
-                    });
-                }
-            } else {
-                // Ensure all fields are editable when status is not in restricted states
-                if (frm.fields_dict) {
-                    Object.keys(frm.fields_dict).forEach(fieldname => {
-                        let field = frm.fields_dict[fieldname];
-                        if (!field || !field.df) return;
-                        frm.set_df_property(fieldname, 'read_only', 0);
-                    });
-                }
-            }
         }
+
+        set_reservation_read_only_state(frm);
+
         // ROOM MOVE BUTTON
         let can_move_room = frappe.user_roles.includes('Frontdesk Supervisor') ||
             frappe.session.user === 'Administrator';
@@ -182,7 +159,6 @@ frappe.ui.form.on('Hotel Reservation', {
                             get_query: function () {
                                 return {
                                     filters: {
-                                        'status': 'Available',
                                         'is_enabled': 1,
                                         'name': ['!=', frm.doc.room]
                                     }
@@ -216,6 +192,10 @@ frappe.ui.form.on('Hotel Reservation', {
     },
 
     room_type: function (frm) {
+        if (frm.__syncing_room_type) {
+            return;
+        }
+
         // Clear room if type changes
         frm.set_value('room', '');
     },
@@ -223,13 +203,133 @@ frappe.ui.form.on('Hotel Reservation', {
     arrival_date: function (frm) {
         calculate_nights(frm);
         validate_room_availability(frm);
+        render_room_rate_preview(frm);
     },
 
     departure_date: function (frm) {
         calculate_nights(frm);
         validate_room_availability(frm);
+    },
+    
+    room: function (frm) {
+        sync_room_type_from_room(frm);
+        render_room_rate_preview(frm);
+    },
+    
+    rate_plan: function (frm) {
+        render_room_rate_preview(frm);
+    },
+    
+    discount_type: function (frm) {
+        render_room_rate_preview(frm);
+    },
+    
+    discount_value: function (frm) {
+        render_room_rate_preview(frm);
+    },
+    
+    is_complimentary: function (frm) {
+        render_room_rate_preview(frm);
     }
 });
+
+function sync_room_type_from_room(frm) {
+    if (!frm.doc.room) {
+        return;
+    }
+
+    frappe.db.get_value('Hotel Room', frm.doc.room, 'room_type').then(r => {
+        let room_type = r.message ? r.message.room_type : null;
+        if (!room_type || frm.doc.room_type === room_type) {
+            return;
+        }
+
+        frm.__syncing_room_type = true;
+        return frm.set_value('room_type', room_type).then(() => {
+            frm.__syncing_room_type = false;
+            render_room_rate_preview(frm);
+        });
+    });
+}
+
+function set_reservation_read_only_state(frm) {
+    if (!frm.fields_dict) return;
+
+    let exceptions = [];
+    if (frm.doc.status === 'Checked In') {
+        exceptions = [
+            'departure_date',
+            'discount_value',
+            'is_company_guest',
+            'company',
+            'allow_pos_posting'
+        ];
+    }
+
+    let should_lock = ['Checked In', 'Checked Out', 'Cancelled'].includes(frm.doc.status);
+
+    Object.keys(frm.fields_dict).forEach(fieldname => {
+        let field = frm.fields_dict[fieldname];
+        if (!field || !field.df) return;
+
+        let is_readonly = fieldname === 'status' || (should_lock && !exceptions.includes(fieldname));
+        frm.set_df_property(fieldname, 'read_only', is_readonly ? 1 : 0);
+    });
+}
+
+function render_room_rate_preview(frm) {
+    if (!frm.fields_dict.room_rate_preview) return;
+    
+    let wrapper = frm.fields_dict.room_rate_preview.$wrapper;
+    
+    if (!frm.doc.room) {
+        wrapper.html("<div class='text-muted small'>Select a room to see rate.</div>");
+        return;
+    }
+    
+    // Show loading state
+    wrapper.html("<div class='text-muted small'>Calculating rate...</div>");
+    
+    frappe.call({
+        method: "hospitality_core.hospitality_core.api.reservation.get_room_rate",
+        args: {
+            room: frm.doc.room,
+            rate_plan: frm.doc.rate_plan,
+            room_type: frm.doc.room_type,
+            arrival_date: frm.doc.arrival_date,
+            discount_type: frm.doc.discount_type,
+            discount_value: frm.doc.discount_value,
+            is_complimentary: frm.doc.is_complimentary
+        },
+        callback: function(r) {
+            if (r.message) {
+                let d = r.message;
+                let currency = frappe.boot.sysdefaults.currency;
+                
+                let html = `<div style="padding: 15px; border: 1px solid #d1d8dd; border-radius: 4px; background-color: #f7fafc;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span class="text-muted">Base Rate:</span>
+                        <span style="font-weight: 500;">${format_currency(d.base_rate, currency)}</span>
+                    </div>`;
+                    
+                if (d.discount_amount > 0) {
+                    html += `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: #e74c3c;">
+                        <span>Discount:</span>
+                        <span>- ${format_currency(d.discount_amount, currency)}</span>
+                    </div>`;
+                }
+                
+                html += `<div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid #d1d8dd;">
+                        <span style="font-weight: 600; font-size: 1.1em;">Final Rate / Night:</span>
+                        <span style="font-weight: 700; font-size: 1.1em; color: #2ecc71;">${format_currency(d.final_rate, currency)}</span>
+                    </div>
+                </div>`;
+                
+                wrapper.html(html);
+            }
+        }
+    });
+}
 
 function calculate_nights(frm) {
     if (frm.doc.arrival_date && frm.doc.departure_date) {

@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"KPI_HDR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Key Performance Indicators (Today)</span>\",\"col\":12}},{\"id\":\"N_OCC\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Today's Occupancy %\",\"col\":4}},{\"id\":\"N_REV\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Today's Revenue\",\"col\":4}},{\"id\":\"N_EXP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Today's Expenses\",\"col\":4}},{\"id\":\"FD_HDR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Front Desk Operations</span>\",\"col\":12}},{\"id\":\"AN_SHORT\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Analytics Dashboard\",\"col\":4}},{\"id\":\"AFikpVG8G_\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Front Desk Console\",\"col\":4}},{\"id\":\"LmjeZv2AcL\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tape Chart\",\"col\":4}},{\"id\":\"is7sVl6bVG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Availability Query\",\"col\":4}},{\"id\":\"KRRJXdLa5m\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Guest 360 View\",\"col\":4}},{\"id\":\"Vqn38JTnz-\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Maintenance Requests\",\"col\":4}},{\"id\":\"41rbMghVLH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Housekeeping Board\",\"col\":4}},{\"id\":\"bY0PQMbLR1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"POS Invoice\",\"col\":4}},{\"id\":\"IUtrHgUKOe\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"MGMT_HDR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Management &amp; Inventory</span>\",\"col\":12}},{\"id\":\"3fpFN3V6Ax\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"QcU-MEY5VS\",\"type\":\"card\",\"data\":{\"card_name\":\"Inventory & Rates\",\"col\":4}},{\"id\":\"n54kJReGGr\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting & Billing\",\"col\":4}},{\"id\":\"REP_HDR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Reports &amp; Analytics</span>\",\"col\":12}},{\"id\":\"QQwoEW_WYs\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"eiDfp-ImIL\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"1XswkkRf_g\",\"type\":\"card\",\"data\":{\"card_name\":\"Analytics\",\"col\":4}}]",
+ "content": "[{\"id\":\"FD_HDR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Front Desk Operations</span>\",\"col\":12}},{\"id\":\"AN_SHORT\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Analytics Dashboard\",\"col\":4}},{\"id\":\"AFikpVG8G_\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Front Desk Console\",\"col\":4}},{\"id\":\"LmjeZv2AcL\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tape Chart\",\"col\":4}},{\"id\":\"is7sVl6bVG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Availability Query\",\"col\":4}},{\"id\":\"KRRJXdLa5m\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Guest 360 View\",\"col\":4}},{\"id\":\"Vqn38JTnz-\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Maintenance Requests\",\"col\":4}},{\"id\":\"41rbMghVLH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Housekeeping Board\",\"col\":4}},{\"id\":\"bY0PQMbLR1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"POS Invoice\",\"col\":4}},{\"id\":\"IUtrHgUKOe\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"1XswkkRf_g\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"id\":\"QQwoEW_WYs\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"eiDfp-ImIL\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Activities\",\"col\":4}},{\"id\":\"MGMT_HDR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Management &amp; Inventory</span>\",\"col\":12}},{\"id\":\"3fpFN3V6Ax\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"QcU-MEY5VS\",\"type\":\"card\",\"data\":{\"card_name\":\"Inventory & Rates\",\"col\":4}},{\"id\":\"n54kJReGGr\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting & Billing\",\"col\":4}}]",
  "creation": "2026-01-17 20:44:38.076236",
  "custom_blocks": [],
  "docstatus": 0,
@@ -104,20 +104,10 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Accounting & Billing",
-   "link_count": 0,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Guest Folio",
-   "link_count": 0,
-   "link_to": "Guest Folio",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "hidden": 0,
@@ -152,157 +142,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Financial Reports",
-   "link_count": 0,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Daily Sales Consumption",
-   "link_count": 0,
-   "link_to": "Daily Sales Consumption",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Daily Payment Collection",
-   "link_count": 0,
-   "link_to": "Daily Payment Collection",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Gross Revenue Report",
-   "link_count": 0,
-   "link_to": "Gross Revenue Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Hospitality Expense Report",
-   "link_count": 0,
-   "link_to": "Hospitality Expense Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Guest Ledger",
-   "link_count": 0,
-   "link_to": "Guest Ledger",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "City Ledger",
-   "link_count": 0,
-   "link_to": "City Ledger",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Folio Balance Summary",
-   "link_count": 0,
-   "link_to": "Folio Balance Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Void and Allowance Report",
-   "link_count": 0,
-   "link_to": "Void and Allowance Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Discount and Complimentary Report",
-   "link_count": 0,
-   "link_to": "Discount and Complimentary Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Guest Balance Ledger",
-   "link_count": 0,
-   "link_to": "Guest Balance Ledger",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Analytics",
-   "link_count": 0,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Hotel Performance Analytics",
-   "link_count": 0,
-   "link_to": "Hotel Performance Analytics",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "End of Day Report",
-   "link_count": 0,
-   "link_to": "End of Day Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Operational Reports",
-   "link_count": 6,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -313,6 +154,26 @@
    "label": "House List",
    "link_count": 0,
    "link_to": "House List",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Guest List",
+   "link_count": 0,
+   "link_to": "Guest List",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Reservations Record",
+   "link_count": 0,
+   "link_to": "Reservations Report",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -366,26 +227,181 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Room Sales",
+   "link_count": 0,
+   "link_to": "Room Only Sales",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Daily Payment Report",
+   "link_count": 0,
+   "link_to": "Daily Payment Collection",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "POS Sales Summary",
+   "link_count": 0,
+   "link_to": "POS Sales Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Financial Activity Summary",
+   "link_count": 0,
+   "link_to": "Financial Activity Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Gross Profit Report",
+   "link_count": 0,
+   "link_to": "Gross Profit",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Financial Activities",
+   "link_count": 10,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Guest Folio",
+   "link_count": 0,
+   "link_to": "Guest Folio",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Daily Sales Consumption",
+   "link_count": 0,
+   "link_to": "Daily Sales Consumption",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Gross Revenue Report",
+   "link_count": 0,
+   "link_to": "Gross Revenue Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Hospitality Expense Report",
+   "link_count": 0,
+   "link_to": "Hospitality Expense Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Guest Ledger",
+   "link_count": 0,
+   "link_to": "Guest Ledger",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "City Ledger",
+   "link_count": 0,
+   "link_to": "City Ledger",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Folio Balance Summary",
+   "link_count": 0,
+   "link_to": "Folio Balance Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Void and Allowance Report",
+   "link_count": 0,
+   "link_to": "Void and Allowance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Discount and Complimentary Report",
+   "link_count": 0,
+   "link_to": "Discount and Complimentary Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Guest Balance Ledger",
+   "link_count": 0,
+   "link_to": "Guest Balance Ledger",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-03 03:24:56.249926",
+ "modified": "2026-06-12 14:45:28.888897",
  "modified_by": "Administrator",
  "module": "Hospitality Core",
  "name": "Hospitality",
- "number_cards": [
-  {
-   "label": "Today's Occupancy %",
-   "number_card_name": "Today's Occupancy %"
-  },
-  {
-   "label": "Today's Revenue",
-   "number_card_name": "Today's Revenue"
-  },
-  {
-   "label": "Today's Expenses",
-   "number_card_name": "Today's Expenses"
-  }
- ],
+ "number_cards": [],
  "owner": "Administrator",
  "public": 1,
  "quick_lists": [],

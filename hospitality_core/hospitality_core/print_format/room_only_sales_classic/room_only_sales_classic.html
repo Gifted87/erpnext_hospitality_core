@@ -1,0 +1,95 @@
+{% set lh_name = frappe.db.get_default("letter_head") or frappe.db.get_value("Company", frappe.db.get_default("company"), "default_letter_head") %}
+{% set lh_content = frappe.db.get_value("Letter Head", lh_name, "content") if lh_name else "" %}
+{% set comp = frappe.db.get_default("company") %}
+{% set comp_name = frappe.db.get_value("Company", comp, "company_name") %}
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    .ros-wrap * { box-sizing: border-box; }
+    .ros-wrap { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; color: #222; }
+    .ros-letterhead { margin-bottom: 10px; }
+    .ros-header { text-align: center; padding-bottom: 12px; border-bottom: 2.5px solid #222; margin-bottom: 16px; }
+    .ros-header h2 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; }
+    .ros-header h4 { margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase; color: #444; letter-spacing: 1px; }
+    .ros-header p { margin: 4px 0 0 0; font-size: 10px; color: #666; }
+
+    .ros-meta { display: flex; justify-content: space-between; font-size: 10px; color: #555; margin-bottom: 14px; background: #f4f4f4; border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px; }
+
+    .ros-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .ros-table th { background: #222; color: #fff; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; text-align: left; }
+    .ros-table th.text-right, .ros-table td.text-right { text-align: right !important; }
+    .ros-table td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 10px; }
+    .ros-table tbody tr:nth-child(even) { background: #fafafa; }
+    .ros-table .total-row td { font-weight: 700; border-top: 2px solid #222; background: #f4f4f4; }
+    .ros-footer { text-align: center; margin-top: 30px; padding-top: 12px; border-top: 1px solid #eee; font-size: 10px; color: #888; }
+</style>
+
+{% set total_rent = namespace(v=0) %}
+{% set total_discount = namespace(v=0) %}
+{% set total_net = namespace(v=0) %}
+
+<div class="ros-wrap">
+
+    {% if lh_content %}
+    <div class="ros-letterhead">{{ lh_content }}</div>
+    <hr style="border: 1px solid #ddd; margin-bottom: 10px;">
+    <div class="ros-header" style="border-top: none;">
+        <h4>Room Only Sales</h4>
+        <p>Period: {{ doc.from_date }} to {{ doc.to_date }}</p>
+    </div>
+    {% else %}
+    <div class="ros-header">
+        <h2>{{ comp_name }}</h2>
+        <h4>Room Only Sales</h4>
+        <p>Period: {{ doc.from_date }} to {{ doc.to_date }}</p>
+    </div>
+    {% endif %}
+
+    <div class="ros-meta">
+        <span><b>Printed By:</b> {{ frappe.session.user_fullname }}</span>
+        <span><b>Printed On:</b> {{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "dd MMM yyyy, HH:mm") }}</span>
+        <span><b>Total Rooms:</b> {{ doc.data | selectattr("room") | list | length }}</span>
+    </div>
+
+    <table class="ros-table">
+        <thead>
+            <tr>
+                <th style="width: 8%;">Room</th>
+                <th style="width: 30%;">Guest</th>
+                <th class="text-right" style="width: 20%;">Room Rent (₦)</th>
+                <th class="text-right" style="width: 20%;">Discount (₦)</th>
+                <th class="text-right" style="width: 22%;">Net Amount (₦)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in doc.data %}
+            {% if row.room %}
+            {% set total_rent.v = total_rent.v + (row.room_rent or 0) %}
+            {% set total_discount.v = total_discount.v + (row.discount or 0) %}
+            {% set total_net.v = total_net.v + (row.amount or 0) %}
+            <tr>
+                <td style="font-weight: 700;">{{ row.room }}</td>
+                <td>{{ row.guest_name }}</td>
+                <td class="text-right">{{ frappe.format(row.room_rent, {"fieldtype": "Currency"}) }}</td>
+                <td class="text-right">{{ frappe.format(row.discount, {"fieldtype": "Currency"}) }}</td>
+                <td class="text-right">{{ frappe.format(row.amount, {"fieldtype": "Currency"}) }}</td>
+            </tr>
+            {% endif %}
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center; padding: 20px; color:#888; font-style:italic;">No room-only sales found for this period.</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td colspan="2"><b>TOTAL</b></td>
+                <td class="text-right">{{ frappe.format(doc.total_rent, {"fieldtype": "Currency"}) }}</td>
+                <td class="text-right">{{ frappe.format(doc.total_discount, {"fieldtype": "Currency"}) }}</td>
+                <td class="text-right">{{ frappe.format(doc.total_amount, {"fieldtype": "Currency"}) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="ros-footer">
+        Confidential Internal Document — Hospitality Core
+    </div>
+</div>

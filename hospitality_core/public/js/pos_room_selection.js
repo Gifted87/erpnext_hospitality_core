@@ -69,6 +69,23 @@ hospitality.pos.RoomSelector = class {
         if (window.cur_pos && window.cur_pos.cart) {
             this.render_room_input(window.cur_pos.cart.$customer_section);
         }
+
+        // 4. Hook into new invoice creation to clear the room input
+        if (erpnext.PointOfSale && erpnext.PointOfSale.Controller) {
+            const original_new_invoice = erpnext.PointOfSale.Controller.prototype.make_new_invoice;
+            erpnext.PointOfSale.Controller.prototype.make_new_invoice = function() {
+                me.clear_room_selection();
+                if (original_new_invoice) {
+                    original_new_invoice.apply(this, arguments);
+                }
+            };
+        }
+    }
+
+    clear_room_selection() {
+        this.current_room = null;
+        $('#pos-room-number').val('');
+        $('#room-lookup-status').html('');
     }
 
     render_room_input($container) {
@@ -138,7 +155,7 @@ hospitality.pos.RoomSelector = class {
             method: 'frappe.client.get_value',
             args: {
                 doctype: 'Guest Folio',
-                filters: { customer: customer, status: 'Open' },
+                filters: { guest: customer, status: 'Open' },
                 fieldname: 'room'
             },
             callback: (r) => {

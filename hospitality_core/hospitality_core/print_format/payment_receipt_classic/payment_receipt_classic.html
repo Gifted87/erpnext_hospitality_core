@@ -1,0 +1,134 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    .receipt-wrap * { box-sizing: border-box; }
+    .receipt-wrap { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; color: #222; }
+    .receipt-header { text-align: center; padding-bottom: 12px; border-bottom: 2.5px solid #222; margin-bottom: 18px; }
+    .receipt-header h2 { margin: 0 0 2px 0; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+    .receipt-header h4 { margin: 6px 0 0 0; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .receipt-header p { margin: 2px 0; font-size: 10px; color: #555; }
+    
+    .info-grid { display: table; width: 100%; margin-bottom: 24px; border: 1px solid #ddd; border-radius: 3px; }
+    .info-left, .info-right { display: table-cell; width: 50%; padding: 12px 14px; vertical-align: top; }
+    .info-right { border-left: 1px solid #ddd; text-align: right; }
+    .info-row { margin: 4px 0; line-height: 1.5; font-size: 10px; }
+    .info-label { font-weight: 600; color: #444; margin-right: 5px; }
+    
+    .amount-box { margin: 20px auto; max-width: 400px; border: 1.5px solid #222; border-radius: 4px; padding: 15px; text-align: center; background: #fafafa; }
+    .amount-box h3 { margin: 0; font-size: 16px; font-weight: 700; color: #1a7f37; }
+    .amount-label { font-size: 10px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .amount-words { font-size: 10px; font-style: italic; color: #444; margin-top: 10px; }
+
+    .details-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+    .details-table th, .details-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
+    .details-table th { font-weight: 600; color: #555; font-size: 10px; text-transform: uppercase; }
+    .text-right { text-align: right !important; }
+    
+    .sig-section { display: table; width: 100%; margin-top: 50px; }
+    .sig-col { display: table-cell; width: 50%; text-align: center; vertical-align: top; }
+    .sig-line { border-top: 1.5px solid #333; margin: 40px auto 6px auto; width: 80%; }
+    .sig-label { font-weight: 700; font-size: 10px; }
+    .sig-name { font-size: 10px; color: #666; margin-top: 2px; }
+    
+    .receipt-footer { text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #eee; font-size: 10px; color: #888; }
+    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+    .status-submitted { background: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb; }
+    .status-cancelled { background: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9; }
+</style>
+
+{% set comp = doc.company or frappe.db.get_default("company") %}
+{% set comp_name = frappe.db.get_value("Company", comp, "company_name") %}
+{% set comp_tax = frappe.db.get_value("Company", comp, "tax_id") %}
+
+{# Resolve real guest name from Folio chain via reference_no #}
+{% set _folio_name = doc.reference_no if frappe.db.exists("Guest Folio", doc.reference_no) else None %}
+{% set _folio_guest = frappe.db.get_value("Guest Folio", _folio_name, "guest") if _folio_name else None %}
+{% set _folio_room = frappe.db.get_value("Guest Folio", _folio_name, "room") if _folio_name else None %}
+{% set guest_display_name = frappe.db.get_value("Guest", _folio_guest, "full_name") if _folio_guest else (doc.party_name or doc.party) %}
+{% set room_display = doc.room_number or _folio_room or "" %}
+
+<div class="receipt-wrap">
+
+    <!-- ── HEADER ── -->
+    <div class="receipt-header">
+        <h2>{{ comp_name }}</h2>
+        {% if comp_tax %}<p>RC / Tax ID: {{ comp_tax }}</p>{% endif %}
+        <h4>Official Receipt</h4>
+    </div>
+
+    <!-- ── RECEIPT INFO ── -->
+    <div class="info-grid">
+        <div class="info-left">
+            <div class="info-row"><span class="info-label">Guest:</span> {{ guest_display_name }}</div>
+            {% if doc.hotel_reception %}<div class="info-row"><span class="info-label">Reception:</span> {{ doc.hotel_reception }}</div>{% endif %}
+            <div class="info-row"><span class="info-label">Status:</span> 
+                <span class="status-badge {{ 'status-cancelled' if doc.docstatus==2 else 'status-submitted' }}">
+                    {{ "Cancelled" if doc.docstatus==2 else "Submitted" }}
+                </span>
+            </div>
+        </div>
+        <div class="info-right">
+            <div class="info-row"><span class="info-label">Receipt No:</span> {{ doc.name }}</div>
+            <div class="info-row"><span class="info-label">Date:</span> {{ frappe.utils.formatdate(doc.posting_date, "dd-MM-yyyy") }}</div>
+            <div class="info-row"><span class="info-label">Payment Mode:</span> {{ doc.mode_of_payment }}</div>
+            {% if room_display %}<div class="info-row"><span class="info-label">Room No:</span> {{ room_display }}</div>{% endif %}
+            {% if doc.reference_no %}<div class="info-row"><span class="info-label">Reference No:</span> {{ doc.reference_no }}</div>{% endif %}
+            <div class="info-row"><span class="info-label">Printed On:</span> {{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "dd MMM yyyy, HH:mm") }}</div>
+        </div>
+    </div>
+
+    <!-- ── AMOUNT BOX ── -->
+    <div class="amount-box">
+        <div class="amount-label">Amount Received</div>
+        <h3>{{ frappe.format(doc.paid_amount, {"fieldtype":"Currency"}) }}</h3>
+        <div class="amount-words">Sum of {{ frappe.utils.money_in_words(doc.paid_amount, doc.paid_to_account_currency) }}</div>
+    </div>
+
+    <!-- ── ALLOCATIONS (IF ANY) ── -->
+    {% if doc.references %}
+    <table class="details-table">
+        <thead>
+            <tr>
+                <th>Allocated To</th>
+                <th class="text-right">Amount (₦)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in doc.references %}
+            <tr>
+                <td>{{ row.reference_doctype }} - {{ row.reference_name }}</td>
+                <td class="text-right">{{ frappe.format(row.allocated_amount, {"fieldtype":"Currency"}) }}</td>
+            </tr>
+            {% endfor %}
+            {% if doc.unallocated_amount > 0 %}
+            <tr>
+                <td>Unallocated (Advance)</td>
+                <td class="text-right">{{ frappe.format(doc.unallocated_amount, {"fieldtype":"Currency"}) }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; margin-top: 15px; color: #666; font-size: 10px; font-style: italic;">
+        Payment is unallocated (Advance Payment).
+    </div>
+    {% endif %}
+
+    <!-- ── SIGNATURES ── -->
+    <div class="sig-section">
+        <div class="sig-col">
+            <div class="sig-line"></div>
+            <div class="sig-label">Customer Signature</div>
+        </div>
+        <div class="sig-col">
+            <div class="sig-line"></div>
+            <div class="sig-label">Received By</div>
+            <div class="sig-name">{% set poster = frappe.db.get_value("User", doc.owner, "full_name") or doc.owner %}{{ poster }}</div>
+        </div>
+    </div>
+
+    <div class="receipt-footer">
+        Thank you for your business. <br>
+        All amounts are in {{ doc.paid_to_account_currency }}. E&amp;OE.
+    </div>
+
+</div>

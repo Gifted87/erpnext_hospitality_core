@@ -1,0 +1,84 @@
+{% set lh_name = frappe.db.get_default("letter_head") or frappe.db.get_value("Company", frappe.db.get_default("company"), "default_letter_head") %}
+{% set lh_content = frappe.db.get_value("Letter Head", lh_name, "content") if lh_name else "" %}
+{% set comp = frappe.db.get_default("company") %}
+{% set comp_name = frappe.db.get_value("Company", comp, "company_name") %}
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    .dpc-wrap * { box-sizing: border-box; }
+    .dpc-wrap { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; color: #222; }
+    .dpc-letterhead { margin-bottom: 10px; }
+    .dpc-header { text-align: center; padding-bottom: 12px; border-bottom: 2.5px solid #222; margin-bottom: 16px; }
+    .dpc-header h2 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; }
+    .dpc-header h4 { margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase; color: #444; letter-spacing: 1px; }
+    .dpc-header p { margin: 4px 0 0 0; font-size: 10px; color: #666; }
+
+    .dpc-meta { display: flex; justify-content: space-between; font-size: 10px; color: #555; margin-bottom: 14px; background: #f4f4f4; border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px; }
+
+    .dpc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .dpc-table th { background: #222; color: #fff; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; text-align: left; }
+    .dpc-table th.text-right, .dpc-table td.text-right { text-align: right !important; }
+    .dpc-table td { padding: 7px 10px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 10px; }
+    .dpc-table tbody tr:nth-child(even) { background: #fafafa; }
+    .dpc-table .total-row td { font-weight: 700; border-top: 2px solid #222; background: #f4f4f4; }
+    .dpc-footer { text-align: center; margin-top: 30px; padding-top: 12px; border-top: 1px solid #eee; font-size: 10px; color: #888; }
+</style>
+
+<div class="dpc-wrap">
+
+    {% if lh_content %}
+    <div class="dpc-letterhead">{{ lh_content }}</div>
+    <hr style="border: 1px solid #ddd; margin-bottom: 10px;">
+    <div class="dpc-header" style="border-top: none;">
+        <h4>Daily Payment Collection</h4>
+        <p>{{ doc.from_date }}{% if doc.to_date and doc.to_date != doc.from_date %} to {{ doc.to_date }}{% endif %}</p>
+    </div>
+    {% else %}
+    <div class="dpc-header">
+        <h2>{{ comp_name }}</h2>
+        <h4>Daily Payment Collection</h4>
+        <p>{{ doc.from_date }}{% if doc.to_date and doc.to_date != doc.from_date %} to {{ doc.to_date }}{% endif %}</p>
+    </div>
+    {% endif %}
+
+    <div class="dpc-meta">
+        <span><b>Printed By:</b> {{ frappe.session.user_fullname }}</span>
+        <span><b>Printed On:</b> {{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "dd MMM yyyy, HH:mm") }}</span>
+        <span><b>Total Records:</b> {{ doc.data | length }}</span>
+    </div>
+
+    <table class="dpc-table">
+        <thead>
+            <tr>
+                <th style="width: 24%;">Party</th>
+                <th style="width: 10%;">Room</th>
+                <th style="width: 18%;">Mode of Payment</th>
+                <th class="text-right" style="width: 18%;">Amount (₦)</th>
+                <th style="width: 22%;">Cashier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in doc.data %}
+            <tr>
+                <td>{{ row.party_name or "" }}</td>
+                <td>{{ row.room or "" }}</td>
+                <td>{{ row.mode_of_payment or "" }}</td>
+                <td class="text-right">
+                    {% if row.paid_amount is not none %}
+                    {{ frappe.format(row.paid_amount, {"fieldtype": "Currency"}) }}
+                    {% endif %}
+                </td>
+                <td>{{ row.owner_name or "" }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center; padding: 20px; color:#888; font-style:italic;">No payment records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="dpc-footer">
+        Confidential Internal Document — Hospitality Core
+    </div>
+</div>

@@ -1,0 +1,27 @@
+{
+    "add_total_row": 0,
+    "columns": [],
+    "creation": "2026-01-11 06:15:00.000000",
+    "disabled": 0,
+    "docstatus": 0,
+    "doctype": "Report",
+    "filters": [],
+    "idx": 0,
+    "is_standard": "Yes",
+    "modified": "2026-01-11 06:15:00.000000",
+    "modified_by": "Administrator",
+    "module": "Hospitality Core",
+    "name": "Frontdesk End of Day Report",
+    "owner": "Administrator",
+    "ref_doctype": "Hotel Reservation",
+    "report_name": "Frontdesk End of Day Report",
+    "report_type": "Script Report",
+    "roles": [
+        {
+            "role": "Hospitality User"
+        },
+        {
+            "role": "System Manager"
+        }
+    ]
+}

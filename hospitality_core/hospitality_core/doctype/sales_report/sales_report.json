@@ -1,0 +1,257 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "issingle": 1,
+ "creation": "2026-03-09 16:47:57.731229",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "from_date_time",
+  "to_date_time",
+  "pos_entry_status",
+  "pos_profiles",
+  "include_stock_balances",
+  "section_break_summary",
+  "total_expected_amount",
+  "total_actual_amount",
+  "total_difference",
+  "column_break_kpi",
+  "vat_amount",
+  "service_charge",
+  "consumption_tax",
+  "net_sales",
+  "total_transactions",
+  "cashiers",
+  "section_break_item",
+  "eod_item_sales",
+  "section_break_group",
+  "eod_item_group_sales",
+  "section_break_payment",
+  "eod_payment_summary",
+  "section_break_expenses",
+  "eod_expense_breakdown",
+  "section_break_discrepancies",
+  "eod_discrepancies",
+  "section_break_stock",
+  "eod_stock_balance"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "from_date_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "From Date & Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "To Date & Time",
+   "reqd": 1
+  },
+  {
+   "default": "Submitted",
+   "fieldname": "pos_entry_status",
+   "fieldtype": "Select",
+   "label": "POS Entry Status",
+   "options": "Submitted\nDraft",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pos_profiles",
+   "fieldtype": "Table MultiSelect",
+   "label": "POS Profiles",
+   "options": "EOD POS Profile"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_stock_balances",
+   "fieldtype": "Check",
+   "label": "Include Stock Balances"
+  },
+  {
+   "fieldname": "section_break_summary",
+   "fieldtype": "Section Break",
+   "label": "Summary"
+  },
+  {
+   "fieldname": "total_expected_amount",
+   "fieldtype": "Currency",
+   "label": "Total Expected Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_actual_amount",
+   "fieldtype": "Currency",
+   "label": "Total Actual Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_difference",
+   "fieldtype": "Currency",
+   "label": "Total Difference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_kpi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vat_amount",
+   "fieldtype": "Currency",
+   "label": "VAT (7.5%)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_charge",
+   "fieldtype": "Currency",
+   "label": "Service Charge (10%)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consumption_tax",
+   "fieldtype": "Currency",
+   "label": "Consumption Tax (5%)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "net_sales",
+   "fieldtype": "Currency",
+   "label": "Net Sales",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_transactions",
+   "fieldtype": "Int",
+   "label": "Total Transactions",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cashiers",
+   "fieldtype": "Data",
+   "label": "Cashiers",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_item",
+   "fieldtype": "Section Break",
+   "label": "Item Sales"
+  },
+  {
+   "fieldname": "eod_item_sales",
+   "fieldtype": "Table",
+   "label": "Item Sales",
+   "options": "EOD Item Sales",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_group",
+   "fieldtype": "Section Break",
+   "label": "Item Group Sales"
+  },
+  {
+   "fieldname": "eod_item_group_sales",
+   "fieldtype": "Table",
+   "label": "Item Group Sales",
+   "options": "EOD Item Group Sales",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_payment",
+   "fieldtype": "Section Break",
+   "label": "Payment Mode Summary"
+  },
+  {
+   "fieldname": "eod_payment_summary",
+   "fieldtype": "Table",
+   "label": "Payment Summary",
+   "options": "EOD Payment Summary",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_expenses",
+   "fieldtype": "Section Break",
+   "label": "Expense Breakdown"
+  },
+  {
+   "fieldname": "eod_expense_breakdown",
+   "fieldtype": "Table",
+   "label": "Expense Breakdown",
+   "options": "EOD Expense Breakdown",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_discrepancies",
+   "fieldtype": "Section Break",
+   "label": "Associated Closing Entries & Discrepancies"
+  },
+  {
+   "fieldname": "eod_discrepancies",
+   "fieldtype": "Table",
+   "label": "Closing Entries Summary",
+   "options": "EOD Discrepancies",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_stock",
+   "fieldtype": "Section Break",
+   "label": "Closing Stock Balances"
+  },
+  {
+   "fieldname": "eod_stock_balance",
+   "fieldtype": "Table",
+   "label": "Stock Balances",
+   "options": "EOD Stock Balance",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-12 09:54:18.091105",
+ "modified_by": "Administrator",
+ "module": "Hospitality Core",
+ "name": "Sales Report",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hospitality User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

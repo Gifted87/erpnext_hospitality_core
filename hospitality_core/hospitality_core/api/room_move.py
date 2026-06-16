@@ -8,7 +8,7 @@ def process_room_move(reservation_name, new_room):
     Moves a checked-in guest to a new room.
     1. Validate permissions.
     2. Validate New Room availability.
-    3. Mark Old Room 'Dirty'.
+    3. Mark Old Room 'Available'.
     4. Mark New Room 'Occupied'.
     5. Update Reservation and Folio.
     """
@@ -25,20 +25,23 @@ def process_room_move(reservation_name, new_room):
         frappe.throw(_("New Room cannot be the same as Current Room."))
 
     old_room = res.room
+    new_room_type = frappe.db.get_value("Hotel Room", new_room, "room_type")
 
     # 1. Validate Availability (for the remaining dates)
     # We check from Today to Departure Date
     check_availability(new_room, frappe.utils.nowdate(), res.departure_date, ignore_reservation=res.name)
 
     # 2. Update Statuses
-    # Old Room -> Dirty
-    frappe.db.set_value("Hotel Room", old_room, "status", "Dirty")
+    # Old Room -> Available (housekeeping can manually mark Dirty if needed)
+    frappe.db.set_value("Hotel Room", old_room, "status", "Available")
     
     # New Room -> Occupied
     frappe.db.set_value("Hotel Room", new_room, "status", "Occupied")
 
     # 3. Update Documents (Bypass set_only_once restriction)
     res.db_set("room", new_room)
+    if new_room_type and res.room_type != new_room_type:
+        res.db_set("room_type", new_room_type)
     
     # Update Folio
     if res.folio:

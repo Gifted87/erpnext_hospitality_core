@@ -13,6 +13,8 @@ class HotelReservation(Document):
 
         self.validate_dates()
         
+        self.sync_room_type_with_room()
+
         # Only validate availability if status is Reserved or Checked In
         if self.status in ["Reserved", "Checked In"]:
             self.validate_room_availability()
@@ -28,6 +30,14 @@ class HotelReservation(Document):
     def validate_dates(self):
         if getdate(self.arrival_date) >= getdate(self.departure_date):
             frappe.throw(_("Departure Date must be after Arrival Date."))
+
+    def sync_room_type_with_room(self):
+        if not self.room:
+            return
+
+        room_type = frappe.db.get_value("Hotel Room", self.room, "room_type")
+        if room_type and self.room_type != room_type:
+            self.room_type = room_type
 
     def validate_room_availability(self):
         check_availability(
@@ -133,7 +143,7 @@ class HotelReservation(Document):
     def process_check_out(self):
         """
         Transition: Checked In -> Checked Out
-        Room: Occupied -> Dirty
+        Room: Occupied -> Available
         Folio: Validate Balance -> Closed -> SUBMITTED (Immutable)
         Reservation: SUBMITTED (Immutable)
         """
@@ -291,8 +301,8 @@ class HotelReservation(Document):
         # (e.g. from Folio/Room logic) triggering optimistic locking failures during full save.
         self.db_set("status", "Checked Out")
         
-        # 3. Update Room Status to Dirty
-        frappe.db.set_value("Hotel Room", self.room, "status", "Dirty")
+        # 3. Update Room Status to Available
+        frappe.db.set_value("Hotel Room", self.room, "status", "Available")
 
         # 4. No self.save() needed - db_set handles the status update safely.
 
@@ -311,10 +321,115 @@ class HotelReservation(Document):
         if self.folio:
             folio_status = frappe.db.get_value("Guest Folio", self.folio, "status")
             if folio_status not in ["Closed", "Cancelled"]:
+                folio_doc = frappe.get_doc("Guest Folio", self.folio)
+                from hospitality_core.hospitality_core.api.folio import sync_folio_balance
+                sync_folio_balance(folio_doc)
+                
+                if folio_doc.outstanding_balance < -0.01: # Guest has excess payment (credit)
+                    # Transfer to guest balance ledger
+                    amount_to_transfer = abs(folio_doc.outstanding_balance)
+                    frappe.get_doc({
+                        "doctype": "Guest Balance Ledger",
+                        "guest": folio_doc.guest,
+                        "amount": amount_to_transfer,
+                        "status": "Available",
+                        "date": frappe.utils.nowdate(),
+                        "folio": self.folio
+                    }).insert(ignore_permissions=True)
+                    frappe.msgprint(_("Transferred {0} to Guest Balance Ledger.").format(amount_to_transfer))
+                    
+                    # Create a debit transaction to zero out the folio
+                    transfer_item = "REFUND-TRANSFER"
+                    if not frappe.db.exists("Item", transfer_item):
+                        item = frappe.new_doc("Item")
+                        item.item_code = transfer_item
+                        item.item_name = "Transfer to Balance Ledger"
+                        item.item_group = "Services"
+                        item.is_stock_item = 0
+                        item.insert(ignore_permissions=True)
+                        
+                    frappe.get_doc({
+                        "doctype": "Folio Transaction",
+                        "parent": self.folio,
+                        "parenttype": "Guest Folio",
+                        "parentfield": "transactions",
+                        "posting_date": frappe.utils.nowdate(),
+                        "item": transfer_item,
+                        "description": "Transfer to Guest Balance Ledger on Cancellation",
+                        "qty": 1,
+                        "amount": amount_to_transfer, # Debit
+                        "bill_to": "Guest",
+                        "is_void": 0
+                    }).insert(ignore_permissions=True)
+                    
+                    sync_folio_balance(folio_doc)
+                    
                 frappe.db.set_value("Guest Folio", self.folio, "status", "Cancelled")
                 frappe.msgprint(_("Linked Guest Folio {0} has been cancelled.").format(self.folio))
         
         return "Cancelled"
+
+    def on_update(self):
+        # Requirement: "make it possible for everybody to edit the is company and company field"
+        # We handle the impact on billing and folio management here.
+        if self.folio:
+            folio_doc = frappe.get_doc("Guest Folio", self.folio)
+            
+            if folio_doc.company != self.company:
+                folio_doc.db_set("company", self.company)
+                
+                if self.is_company_guest and self.company:
+                    self.ensure_company_folio()
+                    # Transition existing 'Guest' transactions to 'Company'
+                    self.sync_transactions_to_company(folio_doc)
+                elif not self.is_company_guest:
+                    # Transition existing 'Company' transactions back to 'Guest'
+                    self.sync_transactions_from_company(folio_doc)
+            
+            if folio_doc.room != self.room:
+                folio_doc.db_set("room", self.room)
+
+    def sync_transactions_to_company(self, folio_doc):
+        from hospitality_core.hospitality_core.api.folio import mirror_to_company_folio, sync_folio_balance
+        
+        updated = False
+        for txn in folio_doc.transactions:
+            if txn.bill_to == "Guest" and not txn.is_void:
+                txn.db_set("bill_to", "Company")
+                mirror_to_company_folio(txn)
+                updated = True
+        
+        if updated:
+            sync_folio_balance(folio_doc)
+
+    def sync_transactions_from_company(self, folio_doc):
+        from hospitality_core.hospitality_core.api.folio import sync_folio_balance
+        
+        updated = False
+        for txn in folio_doc.transactions:
+            if txn.bill_to == "Company" and not txn.is_void:
+                txn.db_set("bill_to", "Guest")
+                # Remove mirrored transaction from Company Folio
+                self.remove_mirrored_transaction(txn)
+                updated = True
+        
+        if updated:
+            sync_folio_balance(folio_doc)
+
+    def remove_mirrored_transaction(self, original_txn):
+        # Mirrored transactions have reference_name = original_txn.name
+        mirrored_txns = frappe.get_all("Folio Transaction", filters={
+            "reference_doctype": "Folio Transaction",
+            "reference_name": original_txn.name
+        })
+        
+        for m_txn in mirrored_txns:
+            m_doc = frappe.get_doc("Folio Transaction", m_txn.name)
+            parent_folio = m_doc.parent
+            frappe.delete_doc("Folio Transaction", m_txn.name, ignore_permissions=True)
+            
+            from hospitality_core.hospitality_core.api.folio import sync_folio_balance
+            sync_folio_balance(frappe.get_doc("Guest Folio", parent_folio))
 
 # Whitelisted methods for client-side buttons
 @frappe.whitelist()

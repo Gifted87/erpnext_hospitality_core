@@ -6,6 +6,17 @@
  */
 
 frappe.ui.form.on('Payment Entry', {
+    setup: function (frm) {
+        frm.set_query('mode_of_payment', function() {
+            if (frm.doc.hotel_reception) {
+                return {
+                    filters: {
+                        'hotel_reception': frm.doc.hotel_reception
+                    }
+                };
+            }
+        });
+    },
     after_save: function (frm) {
         // Only trigger auto-print if document is submitted
         if (frm.doc.docstatus === 1 && !frm.doc.__auto_print_triggered) {

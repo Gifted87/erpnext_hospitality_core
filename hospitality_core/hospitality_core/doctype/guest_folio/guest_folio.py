@@ -21,7 +21,7 @@ class GuestFolio(Document):
     def validate(self):
         # Enforce chronological order of transactions
         if self.transactions:
-            self.transactions.sort(key=lambda x: (x.posting_date or "", x.creation or ""))
+            self.transactions.sort(key=lambda x: (x.posting_date or "", x.posting_time or "", x.creation or ""))
             for i, d in enumerate(self.transactions):
                 d.idx = i + 1
             

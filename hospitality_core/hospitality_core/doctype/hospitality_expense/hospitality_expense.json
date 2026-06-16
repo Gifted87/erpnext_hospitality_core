@@ -101,8 +101,7 @@
             "fieldtype": "Link",
             "label": "Company",
             "options": "Company",
-            "reqd": 1,
-            "default": "Edo Heritage Hotel"
+            "reqd": 1
         },
         {
             "fieldname": "section_break_1",

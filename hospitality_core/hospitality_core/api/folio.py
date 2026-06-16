@@ -393,3 +393,45 @@ def transfer_existing_balances(folio_doc):
         frappe.msgprint(_("Transferred {0} from previous credit balances to this folio.").format(
             frappe.format(total_transferred, "Currency")
         ))
+
+def process_ledger_adjustment(doc, method=None):
+    """
+    Hook: Folio Ledger Adjustment (on_submit)
+    """
+    folio = frappe.get_doc("Guest Folio", doc.folio)
+    
+    amount = flt(doc.amount)
+    if doc.adjustment_type == "Clear Debt":
+        amount = -1 * abs(amount) # Credit
+    else:
+        amount = abs(amount) # Debit
+        
+    txn = frappe.get_doc({
+        "doctype": "Folio Transaction",
+        "parent": folio.name,
+        "parenttype": "Guest Folio",
+        "parentfield": "transactions",
+        "posting_date": frappe.utils.nowdate(),
+        "item": "MANUAL_ADJUSTMENT",
+        "description": doc.description,
+        "qty": 1,
+        "amount": amount,
+        "bill_to": "Company" if folio.is_company_master else "Guest",
+        "reference_doctype": "Folio Ledger Adjustment",
+        "reference_name": doc.name,
+        "is_void": 0
+    })
+    
+    txn.insert(ignore_permissions=True)
+    
+def cancel_ledger_adjustment(doc, method=None):
+    """
+    Hook: Folio Ledger Adjustment (on_cancel)
+    """
+    txns = frappe.get_all("Folio Transaction", filters={
+        "reference_doctype": "Folio Ledger Adjustment",
+        "reference_name": doc.name
+    })
+    
+    for txn in txns:
+        frappe.delete_doc("Folio Transaction", txn.name, ignore_permissions=True)

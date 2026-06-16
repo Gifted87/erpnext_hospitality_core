@@ -71,3 +71,37 @@ def deduct_inventory(doc, method=None):
         
     except Exception as e:
         frappe.log_error(f"Failed to deduct stock for {doc.item}: {str(e)}", "Hotel Stock Error")
+
+def post_pos_invoice_stock(doc, method=None):
+    """Post stock immediately for paid POS Invoice sales."""
+    if doc.docstatus != 1:
+        return
+
+    doc.update_stock = 1
+
+    if frappe.db.exists("Stock Ledger Entry", {"voucher_type": "POS Invoice", "voucher_no": doc.name, "is_cancelled": 0}):
+        return
+
+    doc.update_stock_reservation_entries()
+    doc.update_stock_ledger()
+    doc.repost_future_sle_and_gle()
+
+
+def cancel_pos_invoice_stock(doc, method=None):
+    """Reverse stock posted directly by a POS Invoice."""
+    if not frappe.db.exists("Stock Ledger Entry", {"voucher_type": "POS Invoice", "voucher_no": doc.name, "is_cancelled": 0}):
+        return
+
+    doc.update_stock_ledger()
+    doc.update_stock_reservation_entries()
+    doc.repost_future_sle_and_gle()
+
+
+def disable_stock_for_consolidated_pos_sales_invoice(doc, method=None):
+    """POS stock is posted on POS Invoice submit, not during POS Closing consolidation."""
+    if doc.doctype != "Sales Invoice":
+        return
+
+    has_pos_invoice_rows = any(item.get("pos_invoice") for item in doc.get("items", []))
+    if doc.get("is_consolidated") or has_pos_invoice_rows:
+        doc.update_stock = 0

@@ -81,7 +81,7 @@ def make_gl_entries_for_folio_transaction(txn_doc, method=None):
         "remarks": f"{txn_doc.description} (Ref: {txn_doc.name})",
         "is_cancelled": 1 if is_cancelled else 0,
         "cost_center": settings.cost_center,
-        "company": "Edo Heritage Hotel"
+        "company": txn_doc.company or frappe.db.get_default("company")
     }))
 
     # Credits
@@ -106,7 +106,7 @@ def make_gl_entries_for_folio_transaction(txn_doc, method=None):
         "remarks": f"{txn_doc.description} (Net) (Ref: {txn_doc.name})",
         "is_cancelled": 1 if is_cancelled else 0,
         "cost_center": settings.cost_center,
-        "company": "Edo Heritage Hotel"
+        "company": txn_doc.company or frappe.db.get_default("company")
     }))
 
     # 2. Credit Consumption Tax
@@ -122,7 +122,7 @@ def make_gl_entries_for_folio_transaction(txn_doc, method=None):
             "remarks": f"Consumption Tax (5%) for {txn_doc.name}",
             "is_cancelled": 1 if is_cancelled else 0,
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": txn_doc.company or frappe.db.get_default("company")
         }))
 
     # 3. Credit VAT
@@ -138,7 +138,7 @@ def make_gl_entries_for_folio_transaction(txn_doc, method=None):
             "remarks": f"VAT (7.5%) for {txn_doc.name}",
             "is_cancelled": 1 if is_cancelled else 0,
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": txn_doc.company or frappe.db.get_default("company")
         }))
 
     # 4. Credit Service Charge
@@ -154,7 +154,7 @@ def make_gl_entries_for_folio_transaction(txn_doc, method=None):
             "remarks": f"Service Charge (10%) for {txn_doc.name}",
             "is_cancelled": 1 if is_cancelled else 0,
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": txn_doc.company or frappe.db.get_default("company")
         }))
 
     for entry in gl_entries:
@@ -185,7 +185,7 @@ def handle_payment_income_realization(payment_doc, folio_id, amount, cancel=0):
         "voucher_no": payment_doc.name,
         "remarks": f"Income Realization (Net) for Folio {folio_id}",
         "cost_center": settings.cost_center,
-        "company": "Edo Heritage Hotel"
+        "company": payment_doc.company or frappe.db.get_default("company")
     }))
 
     # Credit Income
@@ -199,7 +199,7 @@ def handle_payment_income_realization(payment_doc, folio_id, amount, cancel=0):
         "voucher_no": payment_doc.name,
         "remarks": f"Income Realization (Net) for Folio {folio_id}",
         "cost_center": settings.cost_center,
-        "company": "Edo Heritage Hotel"
+        "company": payment_doc.company or frappe.db.get_default("company")
     }))
 
     for entry in gl_entries:
@@ -217,7 +217,7 @@ def redirect_pos_income_to_suspense(pos_invoice, method=None):
 
     room_charge_amount = 0
     for pay in pos_invoice.payments:
-        if pay.mode_of_payment == "Room Charge":
+        if pay.mode_of_payment == "Guest Account":
             room_charge_amount += flt(pay.amount)
 
     if room_charge_amount <= 0:
@@ -239,7 +239,7 @@ def redirect_pos_income_to_suspense(pos_invoice, method=None):
         "voucher_no": pos_invoice.name,
         "remarks": f"Deferring Income for Room Charge (Invoice {pos_invoice.name})",
         "cost_center": settings.cost_center,
-        "company": "Edo Heritage Hotel"
+        "company": pos_invoice.company or frappe.db.get_default("company")
     }))
 
     # 2. Credit Suspense (Increase Unearned)
@@ -252,7 +252,7 @@ def redirect_pos_income_to_suspense(pos_invoice, method=None):
         "voucher_no": pos_invoice.name,
         "remarks": f"Deferring Income for Room Charge (Invoice {pos_invoice.name})",
         "cost_center": settings.cost_center,
-        "company": "Edo Heritage Hotel"
+        "company": pos_invoice.company or frappe.db.get_default("company")
     }))
 
     if gl_entries:
@@ -288,7 +288,7 @@ def reclassify_pos_taxes(pos_invoice, method=None):
     # Determine Source of Funds (Income vs Suspense)
     room_charge_paid = 0
     for pay in pos_invoice.payments:
-        if pay.mode_of_payment == "Room Charge":
+        if pay.mode_of_payment == "Guest Account":
             room_charge_paid += flt(pay.amount, 2)
             
     if room_charge_paid > total_amount:
@@ -312,7 +312,7 @@ def reclassify_pos_taxes(pos_invoice, method=None):
             "voucher_no": pos_invoice.name,
             "remarks": f"Tax Reclassification (Income) for POS {pos_invoice.name}",
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": pos_invoice.company or frappe.db.get_default("company")
         }))
 
     # 2. Debit Suspense (Tax portion of Room Charges)
@@ -326,7 +326,7 @@ def reclassify_pos_taxes(pos_invoice, method=None):
             "voucher_no": pos_invoice.name,
             "remarks": f"Tax Reclassification (Suspense) for POS {pos_invoice.name}",
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": pos_invoice.company or frappe.db.get_default("company")
         }))
 
     # 3. Credit Consumption Tax
@@ -340,7 +340,7 @@ def reclassify_pos_taxes(pos_invoice, method=None):
             "voucher_no": pos_invoice.name,
             "remarks": f"Consumption Tax (5%) for POS {pos_invoice.name}",
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": pos_invoice.company or frappe.db.get_default("company")
         }))
 
     # 4. Credit VAT
@@ -354,7 +354,7 @@ def reclassify_pos_taxes(pos_invoice, method=None):
             "voucher_no": pos_invoice.name,
             "remarks": f"VAT (7.5%) for POS {pos_invoice.name}",
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": pos_invoice.company or frappe.db.get_default("company")
         }))
 
     # 5. Credit Service Charge
@@ -368,7 +368,7 @@ def reclassify_pos_taxes(pos_invoice, method=None):
             "voucher_no": pos_invoice.name,
             "remarks": f"Service Charge (10%) for POS {pos_invoice.name}",
             "cost_center": settings.cost_center,
-            "company": "Edo Heritage Hotel"
+            "company": pos_invoice.company or frappe.db.get_default("company")
         }))
 
     if gl_entries:
@@ -388,7 +388,7 @@ def create_expense_gl_entries(expense_doc, method=None):
             frappe.throw(_("Expense Account and Payment Account are required for GL entries."))
 
     gl_entries = []
-    company = expense_doc.company or "Edo Heritage Hotel"
+    company = expense_doc.company or frappe.db.get_default("company")
 
     # 1. Debit Expense Account (Net Amount)
     gl_entries.append(frappe.get_doc({
@@ -447,7 +447,7 @@ def run_pos_cancellation_test():
     print("Starting POS Cancellation Fix Verification Test...")
     
     # 1. Setup Data
-    company = "Edo Heritage Hotel"
+    company = frappe.db.get_default("company") or "Edo Heritage Hotel"
     ts = str(int(time.time()))
     room_number = "101TEST"
     item_code = "TEST_BEER"
@@ -521,9 +521,9 @@ def run_pos_cancellation_test():
         ],
         "payments": [
             {
-                "mode_of_payment": "Room Charge",
+                "mode_of_payment": "Guest Account",
                 "amount": 2450,
-                "account": frappe.db.get_value("Mode of Payment Account", {"parent": "Room Charge", "company": company}, "default_account")
+                "account": frappe.db.get_value("Mode of Payment Account", {"parent": "Guest Account", "company": company}, "default_account")
             }
         ]
     })
@@ -555,3 +555,9 @@ def run_pos_cancellation_test():
         print("PASS: Folio Transactions deleted upon cancellation.")
     else:
         print(f"FAIL: {txn_count} Folio Transactions still exist.")
+
+@frappe.whitelist(allow_guest=True)
+def execute_cleanup():
+    import hospitality_core.hospitality_core.hospitality_core.clear_hotel_data as clear_data
+    clear_data.execute()
+    return "Data wipe executed successfully via API."

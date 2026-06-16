@@ -1,0 +1,18 @@
+{
+ "align_labels_right": 0,
+ "creation": "2026-06-12 12:00:00.000000",
+ "custom_format": 1,
+ "default_print_format": 0,
+ "doc_type": "Room Only Sales",
+ "docstatus": 0,
+ "doctype": "Print Format",
+ "html": "<!-- Logic Handled in Jinja File -->",
+ "line_breaks": 0,
+ "module": "Hospitality Core",
+ "name": "Room Only Sales Classic",
+ "owner": "Administrator",
+ "print_format_type": "Jinja",
+ "raw_printing": 0,
+ "show_section_headings": 0,
+ "standard": "Yes"
+}

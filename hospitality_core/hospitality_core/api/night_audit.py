@@ -6,13 +6,17 @@ from hospitality_core.hospitality_core.api.folio import sync_folio_balance, mirr
 def run_daily_audit():
     """
     Scheduled Job: Runs at 2 PM daily.
-    1. Checks for Overstays.
-    2. Posts Room Rent + Discounts for all rooms currently Checked In.
-    3. SKIPS posting if a Room Rent charge already exists for the current date.
+    1. Auto-cancels no-show reservations (arrival passed, still Reserved).
+    2. Checks for Overstays and extends departure date for ALL checked-in rooms.
+    3. Posts Room Rent + Discounts for all rooms currently Checked In.
+    4. SKIPS posting if a Room Rent charge already exists for the current date.
     """
     posting_date = nowdate()
-    
-    # 1. Fetch active reservations with Discount settings
+
+    # Step 1: Cancel no-shows before anything else
+    cancel_no_shows(posting_date)
+
+    # Step 2: Fetch active reservations with Discount settings
     active_reservations = frappe.get_all("Hotel Reservation", 
         filters={"status": "Checked In"},
         fields=[
@@ -37,17 +41,59 @@ def run_daily_audit():
     if count > 0:
         frappe.msgprint(_("Auto-Bill (2 PM): Posted charges for {0} rooms.").format(count))
 
+def cancel_no_shows(posting_date):
+    """
+    Cancels all reservations where:
+    - status = 'Reserved' (not yet checked in)
+    - arrival_date < today (arrival date has already passed)
+    Also cancels the linked folio if it exists.
+    """
+    no_shows = frappe.get_all("Hotel Reservation",
+        filters={
+            "status": "Reserved",
+            "arrival_date": ["<", posting_date]
+        },
+        fields=["name", "folio", "room", "guest", "arrival_date"]
+    )
+
+    cancelled_count = 0
+    for res in no_shows:
+        try:
+            frappe.db.set_value("Hotel Reservation", res.name, "status", "Cancelled")
+
+            # Cancel linked folio if it exists and is not already closed/cancelled
+            if res.folio:
+                folio_status = frappe.db.get_value("Guest Folio", res.folio, "status")
+                if folio_status not in ["Closed", "Cancelled"]:
+                    frappe.db.set_value("Guest Folio", res.folio, "status", "Cancelled")
+
+            # Add a system comment
+            doc = frappe.get_doc("Hotel Reservation", res.name)
+            doc.add_comment("Info", _("Auto-Cancelled (Night Audit): Guest did not arrive. Arrival date was {0}.").format(res.arrival_date))
+
+            cancelled_count += 1
+        except Exception as e:
+            frappe.log_error(
+                f"No-Show Cancellation Error for {res.name}: {str(e)}",
+                f"Night Audit No-Show Error: {res.name}"
+            )
+
+    if cancelled_count > 0:
+        frappe.msgprint(_("Night Audit: Auto-cancelled {0} no-show reservation(s).").format(cancelled_count))
+
 def process_single_reservation(res, posting_date):
-    # First, check if already charged to avoid duplicates
-    if already_charged_today(res.folio, posting_date, room=res.room):
-        return False
-    
-    # Handle true overstays (departure was BEFORE today, not today)
-    # Guests departing today should still be charged for their final night
-    if getdate(res.departure_date) < getdate(posting_date):
+    # Step A: Handle overstay FIRST — regardless of whether we will bill today.
+    # This ensures departure dates are always extended for ALL checked-in rooms
+    # even if billing was already done (e.g. via check-in billing at 8 AM).
+    # If today is their departure date (or past it) and they are still Checked In, they overstayed.
+    if getdate(res.departure_date) <= getdate(posting_date):
         handle_overstay(res)
 
-    # Get Base Rate
+    # Step B: Skip billing if already charged today to avoid duplicates
+    if already_charged_today(res.folio, posting_date, room=res.room):
+        return False
+
+    # Step C: Get Base Rate and post room charge
     daily_rate = get_rate(res.rate_plan, res.room_type, posting_date)
     
     if daily_rate > 0:
@@ -146,9 +192,6 @@ def post_room_charge(res, base_amount, date):
     discount_amount = 0.0
     discount_desc = ""
     discount_item = "DISCOUNT"
-
-    # DEBUG: Log discount info
-    frappe.log_error(f"Posting Charge for {res.name}: type={res.get('discount_type')}, value={res.get('discount_value')}, comp={res.get('is_complimentary')}", "Post Charge Discount Debug")
 
     if res.get("is_complimentary"):
         discount_amount = base_amount

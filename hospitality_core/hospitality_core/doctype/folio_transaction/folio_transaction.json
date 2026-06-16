@@ -6,10 +6,14 @@
     "engine": "InnoDB",
     "field_order": [
         "posting_date",
+        "posting_time",
         "item",
         "description",
         "qty",
         "amount",
+        "debit",
+        "credit",
+        "posted_by",
         "bill_to",
         "is_void",
         "void_reason",
@@ -27,9 +31,17 @@
             "reqd": 1
         },
         {
+            "fieldname": "posting_time",
+            "fieldtype": "Time",
+            "in_list_view": 1,
+            "label": "Time",
+            "reqd": 1,
+            "default": "Now"
+        },
+        {
             "fieldname": "item",
             "fieldtype": "Link",
-            "in_list_view": 1,
+            "in_list_view": 0,
             "label": "Item",
             "options": "Item",
             "reqd": 1
@@ -44,16 +56,40 @@
             "default": "1",
             "fieldname": "qty",
             "fieldtype": "Float",
-            "in_list_view": 1,
+            "in_list_view": 0,
             "label": "Qty",
             "reqd": 1
         },
         {
             "fieldname": "amount",
             "fieldtype": "Currency",
-            "in_list_view": 1,
+            "in_list_view": 0,
             "label": "Amount",
             "reqd": 1
+        },
+        {
+            "fieldname": "debit",
+            "fieldtype": "Currency",
+            "label": "Debit",
+            "in_list_view": 1,
+            "read_only": 1,
+            "description": "Charges to the guest (auto-computed from Amount)"
+        },
+        {
+            "fieldname": "credit",
+            "fieldtype": "Currency",
+            "label": "Credit",
+            "in_list_view": 1,
+            "read_only": 1,
+            "description": "Payments and discounts (auto-computed from Amount)"
+        },
+        {
+            "fieldname": "posted_by",
+            "fieldtype": "Link",
+            "options": "User",
+            "in_list_view": 0,
+            "label": "Posted By",
+            "read_only": 1
         },
         {
             "default": "Guest",
@@ -69,34 +105,40 @@
             "fieldname": "is_void",
             "fieldtype": "Check",
             "in_list_view": 1,
+            "read_only": 1,
             "label": "Void"
         },
         {
             "depends_on": "eval:doc.is_void==1",
             "fieldname": "void_reason",
             "fieldtype": "Data",
-            "label": "Void Reason"
+            "label": "Void Reason",
+            "in_list_view": 1,
+            "read_only": 1
         },
         {
             "default": "0",
             "fieldname": "is_invoiced",
             "fieldtype": "Check",
             "label": "Billed",
-            "read_only": 1
+            "read_only": 1,
+            "in_list_view": 0
         },
         {
             "fieldname": "reference_doctype",
             "fieldtype": "Link",
             "label": "Reference DocType",
             "options": "DocType",
-            "hidden": 1
+            "hidden": 1,
+            "in_list_view": 0
         },
         {
             "fieldname": "reference_name",
             "fieldtype": "Dynamic Link",
             "label": "Reference ID",
             "options": "reference_doctype",
-            "hidden": 1
+            "hidden": 1,
+            "in_list_view": 0
         }
     ],
     "istable": 1,

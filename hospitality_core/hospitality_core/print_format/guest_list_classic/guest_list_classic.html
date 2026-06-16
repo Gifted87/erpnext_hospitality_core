@@ -1,0 +1,87 @@
+{% set lh_name = frappe.db.get_default("letter_head") or frappe.db.get_value("Company", frappe.db.get_default("company"), "default_letter_head") %}
+{% set lh_content = frappe.db.get_value("Letter Head", lh_name, "content") if lh_name else "" %}
+{% set comp = frappe.db.get_default("company") %}
+{% set comp_name = frappe.db.get_value("Company", comp, "company_name") %}
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    .gl-wrap * { box-sizing: border-box; }
+    .gl-wrap { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; color: #222; }
+    .gl-letterhead { margin-bottom: 10px; }
+    .gl-header { text-align: center; padding-bottom: 12px; border-bottom: 2.5px solid #222; margin-bottom: 16px; }
+    .gl-header h2 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; }
+    .gl-header h4 { margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase; color: #444; letter-spacing: 1px; }
+    .gl-header p { margin: 4px 0 0 0; font-size: 10px; color: #666; }
+
+    .gl-meta { display: flex; justify-content: space-between; font-size: 10px; color: #555; margin-bottom: 14px; }
+
+    .gl-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .gl-table th { background: #222; color: #fff; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; text-align: left; }
+    .gl-table td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 10px; }
+    .gl-table tbody tr:nth-child(even) { background: #fafafa; }
+    .gl-table .room-col { font-weight: 700; width: 8%; }
+    .gl-table .guest-col { width: 35%; }
+    .gl-table .date-col { width: 22%; }
+    .billing-type { font-size: 9px; color: #555; font-style: italic; margin-top: 2px; }
+
+    .gl-summary { background: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; padding: 8px 14px; margin-bottom: 20px; font-size: 10px; }
+    .gl-footer { text-align: center; margin-top: 30px; padding-top: 12px; border-top: 1px solid #eee; font-size: 10px; color: #888; }
+</style>
+
+<div class="gl-wrap">
+
+    {% if lh_content %}
+    <div class="gl-letterhead">{{ lh_content }}</div>
+    <hr style="border: 1px solid #ddd; margin-bottom: 10px;">
+    <div class="gl-header" style="border-top: none;">
+        <h4>Guest List</h4>
+        <p>Printed: {{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "dd MMM yyyy, HH:mm") }}</p>
+    </div>
+    {% else %}
+    <div class="gl-header">
+        <h2>{{ comp_name }}</h2>
+        <h4>Guest List</h4>
+        <p>Printed: {{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "dd MMM yyyy, HH:mm") }}</p>
+    </div>
+    {% endif %}
+
+    <div class="gl-summary">
+        <b>Total Guests In-House:</b> {{ doc.data | length }}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <b>Printed By:</b> {{ frappe.session.user_fullname }}
+    </div>
+
+    <table class="gl-table">
+        <thead>
+            <tr>
+                <th class="room-col">Room</th>
+                <th class="guest-col">Guest</th>
+                <th class="date-col">Arrival Date</th>
+                <th class="date-col">Departure Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in doc.data %}
+            <tr>
+                <td class="room-col">{{ row.room }}</td>
+                <td class="guest-col">
+                    {{ row.guest_name }}
+                    <div class="billing-type">({{ row.billing_type }})</div>
+                </td>
+                <td class="date-col">{{ frappe.utils.formatdate(row.arrival_date, "dd MMM yyyy") }}</td>
+                <td class="date-col">{{ frappe.utils.formatdate(row.departure_date, "dd MMM yyyy") }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align:center; padding: 20px; color: #888; font-style: italic;">
+                    No in-house guests found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="gl-footer">
+        Confidential Internal Document — Hospitality Core
+    </div>
+</div>

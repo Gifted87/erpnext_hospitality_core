@@ -1,0 +1,80 @@
+<style>
+    .report-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #1a1a1a;
+    }
+    .report-subtitle {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 20px;
+    }
+    .metric-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .metric-table th {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        text-align: left;
+        font-weight: 600;
+        color: #495057;
+    }
+    .metric-table td {
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        color: #212529;
+    }
+    .metric-table tr:nth-child(even) {
+        background-color: #fcfcfc;
+    }
+    .indent {
+        padding-left: 25px !important;
+        font-style: italic;
+        color: #555;
+    }
+</style>
+
+<div class="text-center" style="margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+    <div class="report-title">{%= __("Frontdesk End of Day Report") %}</div>
+    <div class="report-subtitle">
+        <strong>{%= __("Date") %}:</strong> {%= frappe.datetime.str_to_user(filters.date) %}
+        {% if (filters.hotel_reception) { %}
+            <span style="margin-left: 20px;"><strong>{%= __("Reception") %}:</strong> {%= filters.hotel_reception %}</span>
+        {% } else { %}
+            <span style="margin-left: 20px;"><strong>{%= __("Reception") %}:</strong> {%= __("All Receptions") %}</span>
+        {% } %}
+    </div>
+</div>
+
+<table class="metric-table">
+    <thead>
+        <tr>
+            <th style="width: 40%">{%= __("Metric") %}</th>
+            <th style="width: 20%">{%= __("Value") %}</th>
+            <th style="width: 40%">{%= __("Description") %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for (var i=0, l=data.length; i<l; i++) { %}
+            {% 
+                var is_sub = data[i].metric.startsWith("  -");
+                var display_metric = is_sub ? data[i].metric.replace("  -", "").trim() : data[i].metric;
+            %}
+            <tr>
+                <td class="{%= is_sub ? 'indent' : '' %}" style="{%= !is_sub ? 'font-weight: bold;' : '' %}">
+                    {%= is_sub ? "— " : "" %}{%= display_metric %}
+                </td>
+                <td style="{%= !is_sub ? 'font-weight: bold;' : '' %}">{%= data[i].value %}</td>
+                <td style="font-size: 12px; color: #6c757d;">{%= data[i].description %}</td>
+            </tr>
+        {% } %}
+    </tbody>
+</table>
+
+<div class="text-center" style="margin-top: 50px; font-size: 10px; color: #aaa;">
+    {%= __("Generated on") %} {%= frappe.datetime.now_datetime() %} | {%= __("Frontdesk Operations") %}
+</div>

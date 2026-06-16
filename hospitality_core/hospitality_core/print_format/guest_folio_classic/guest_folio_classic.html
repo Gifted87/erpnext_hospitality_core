@@ -1,74 +1,174 @@
-<div class="print-format-gutter">
-    <div class="row">
-        <div class="col-xs-12 text-center">
-            <h3>{{ frappe.db.get_value("Company", doc.company or frappe.defaults.get_user_default("Company"), "company_name") }}</h3>
-            <p>{{ frappe.db.get_value("Company", doc.company or frappe.defaults.get_user_default("Company"), "tax_id") or "" }}</p>
-            <h4>GUEST FOLIO</h4>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    .folio-wrap * { box-sizing: border-box; }
+    .folio-wrap { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; color: #222; }
+    .folio-header { text-align: center; padding-bottom: 12px; border-bottom: 2.5px solid #222; margin-bottom: 18px; }
+    .folio-header h2 { margin: 0 0 2px 0; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+    .folio-header h4 { margin: 6px 0 0 0; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+    .folio-header p { margin: 2px 0; font-size: 10px; color: #555; }
+    .info-grid { display: table; width: 100%; margin-bottom: 18px; border: 1px solid #ddd; border-radius: 3px; }
+    .info-left, .info-right { display: table-cell; width: 50%; padding: 10px 14px; vertical-align: top; }
+    .info-right { border-left: 1px solid #ddd; text-align: right; }
+    .info-row { margin: 3px 0; line-height: 1.5; }
+    .info-label { font-weight: 600; color: #444; }
+    .txn-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    .txn-table th { background: #222; color: #fff; padding: 7px 9px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .txn-table td { padding: 6px 9px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 10px; }
+    .txn-table tbody tr:nth-child(even) { background: #fafafa; }
+    .txn-table tfoot tr { border-top: 2px solid #222; }
+    .txn-table tfoot td { font-weight: 700; padding: 8px 9px; background: #f4f4f4; }
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .is-void td { text-decoration: line-through; color: #aaa !important; background: #fafafa !important; }
+    .void-note { font-size: 10px; color: #aaa; font-style: italic; }
+
+    .summary-section { margin-top: 24px; overflow: hidden; }
+    .summary-box { float: right; width: 280px; border: 1.5px solid #222; border-radius: 3px; overflow: hidden; }
+    .summary-box table { width: 100%; border-collapse: collapse; }
+    .summary-box td { padding: 6px 10px; font-size: 10px; }
+    .summary-box .s-title { background: #222; color: #fff; font-weight: 700; letter-spacing: 1px; font-size: 10px; text-transform: uppercase; padding: 7px 10px; }
+    .summary-box .s-row td { border-bottom: 1px solid #eee; }
+    .summary-box .s-total td { border-top: 2px solid #222; font-weight: 700; font-size: 12px; padding: 8px 10px; }
+
+    .sig-section { clear: both; margin-top: 50px; }
+    .sig-section table { width: 100%; border-collapse: collapse; }
+    .sig-section td { width: 33%; text-align: center; padding: 0 10px; vertical-align: top; }
+    .sig-line { border-top: 1.5px solid #333; margin: 40px auto 6px auto; width: 90%; }
+    .sig-label { font-weight: 700; font-size: 10px; }
+    .sig-name { font-size: 10px; color: #666; margin-top: 2px; }
+    .folio-footer { text-align: center; margin-top: 32px; padding-top: 12px; border-top: 1px solid #eee; font-size: 10px; color: #888; }
+</style>
+
+{% set comp = doc.company or frappe.db.get_default("company") %}
+{% set comp_name = frappe.db.get_value("Company", comp, "company_name") %}
+{% set comp_tax = frappe.db.get_value("Company", comp, "tax_id") %}
+{% set guest_name = "" if doc.is_company_master else frappe.db.get_value("Guest", doc.guest, "full_name") %}
+{% set guest_addr = frappe.db.get_value("Guest", doc.guest, "address") %}
+{% set ns = namespace(bal=0.0, tot_debit=0.0, tot_credit=0.0) %}
+
+<div class="folio-wrap">
+
+    <!-- ── HEADER ── -->
+    <div class="folio-header">
+        {% if letter_head %}
+            {{ letter_head }}
+        {% else %}
+            <h2>{{ comp_name }}</h2>
+            {% if comp_tax %}<p>RC / Tax ID: {{ comp_tax }}</p>{% endif %}
+        {% endif %}
+        <h4>Guest Folio &amp; Tax Invoice</h4>
+    </div>
+
+    <!-- ── GUEST & FOLIO INFO ── -->
+    <div class="info-grid">
+        <div class="info-left">
+            <div class="info-row"><span class="info-label">Guest Name:</span> {{ guest_name or "-" }}</div>
+            <div class="info-row"><span class="info-label">Address:</span> {{ guest_addr or "-" }}</div>
+            {% if doc.company %}<div class="info-row"><span class="info-label">Company:</span> {{ doc.company }}</div>{% endif %}
+            <div class="info-row"><span class="info-label">Folio Status:</span> {{ doc.status }}</div>
+        </div>
+        <div class="info-right">
+            <div class="info-row"><span class="info-label">Folio No:</span> {{ doc.name }}</div>
+            <div class="info-row"><span class="info-label">Room:</span> {{ doc.room or "-" }}</div>
+            <div class="info-row"><span class="info-label">Reservation:</span> {{ doc.reservation or "-" }}</div>
+            <div class="info-row"><span class="info-label">Date Printed:</span> {{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "dd MMM yyyy, HH:mm") }}</div>
         </div>
     </div>
-    
-    <hr>
 
-    <div class="row" style="margin-bottom: 20px;">
-        <div class="col-xs-6">
-            <strong>Guest Name:</strong> {{ frappe.db.get_value("Guest", doc.guest, "full_name") }}<br>
-            <strong>Address:</strong> {{ frappe.db.get_value("Guest", doc.guest, "address") or "-" }}<br>
-            <strong>Company:</strong> {{ doc.company or "-" }}
-        </div>
-        <div class="col-xs-6 text-right">
-            <strong>Folio No:</strong> {{ doc.name }}<br>
-            <strong>Room No:</strong> {{ doc.room }}<br>
-            <strong>Date:</strong> {{ frappe.utils.now_date() }}
-        </div>
-    </div>
-
-    <table class="table table-bordered table-condensed">
+    <!-- ── TRANSACTION TABLE ── -->
+    <table class="txn-table">
         <thead>
             <tr>
-                <th style="width: 15%">Date</th>
-                <th style="width: 50%">Description</th>
-                <th style="width: 10%">Qty</th>
-                <th style="width: 25%; text-align: right;">Amount</th>
+                <th style="width:16%">Date &amp; Time</th>
+                <th style="width:38%">Description</th>
+                <th style="width:6%; text-align:center;">Qty</th>
+                <th style="width:13%; text-align:right;">Debit (₦)</th>
+                <th style="width:13%; text-align:right;">Credit (₦)</th>
+                <th style="width:14%; text-align:right;">Balance (₦)</th>
             </tr>
         </thead>
         <tbody>
             {% for row in doc.transactions %}
-            {% if not row.is_void %}
-            <tr>
-                <td>{{ frappe.utils.formatdate(row.posting_date) }}</td>
-                <td>{{ row.description }}</td>
-                <td>{{ row.qty }}</td>
-                <td style="text-align: right;">{{ row.get_formatted("amount", doc) }}</td>
-            </tr>
-            {% endif %}
+                {% if not row.is_void %}
+                    {% if row.amount > 0 %}
+                        {% set ns.tot_debit = ns.tot_debit + row.amount %}
+                    {% else %}
+                        {% set ns.tot_credit = ns.tot_credit + (row.amount | abs) %}
+                    {% endif %}
+                    {% set ns.bal = ns.bal + row.amount %}
+                {% endif %}
+                <tr class="{{ 'is-void' if row.is_void else '' }}">
+                    <td>
+                        {{ frappe.utils.formatdate(row.posting_date, "dd-MM-yy") }}
+                        {% if row.get("posting_time") %}<br><small>{{ (row.posting_time | string)[:5] }}</small>{% endif %}
+                    </td>
+                    <td>
+                        {{ row.description or row.item }}
+                        {% if row.is_void %}<br><span class="void-note">VOID — {{ row.void_reason or "Cancelled" }}</span>{% endif %}
+                    </td>
+                    <td class="text-center">{{ "%g" % row.qty }}</td>
+                    <td class="text-right">{{ frappe.format(row.amount, {"fieldtype":"Currency"}) if row.amount > 0 and not row.is_void else "-" }}</td>
+                    <td class="text-right">{{ frappe.format(row.amount | abs, {"fieldtype":"Currency"}) if row.amount < 0 and not row.is_void else "-" }}</td>
+                    <td class="text-right">{{ frappe.format(ns.bal, {"fieldtype":"Currency"}) if not row.is_void else "-" }}</td>
+                </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="3" class="text-right">Total Charges</th>
-                <th class="text-right">{{ doc.get_formatted("total_charges") }}</th>
-            </tr>
-            <tr>
-                <th colspan="3" class="text-right">Total Payments</th>
-                <th class="text-right">{{ doc.get_formatted("total_payments") }}</th>
-            </tr>
-            <tr>
-                <th colspan="3" class="text-right">Balance Due</th>
-                <th class="text-right">{{ doc.get_formatted("outstanding_balance") }}</th>
+                <td colspan="3" class="text-right">TOTALS</td>
+                <td class="text-right">{{ frappe.format(ns.tot_debit, {"fieldtype":"Currency"}) }}</td>
+                <td class="text-right">{{ frappe.format(ns.tot_credit, {"fieldtype":"Currency"}) }}</td>
+                <td class="text-right">
+                    {% if ns.bal < 0 %}
+                        <span style="color:#1a7f37;font-weight:700;">CR {{ frappe.format(ns.bal|abs, {"fieldtype":"Currency"}) }}</span>
+                    {% else %}
+                        {{ frappe.format(ns.bal, {"fieldtype":"Currency"}) }}
+                    {% endif %}
+                </td>
             </tr>
         </tfoot>
     </table>
 
-    <div class="row" style="margin-top: 50px;">
-        <div class="col-xs-6">
-            <br><br>
-            __________________________<br>
-            Guest Signature
-        </div>
-        <div class="col-xs-6 text-right">
-            <br><br>
-            __________________________<br>
-            Cashier
+    <!-- ── SUMMARY BOX ── -->
+    <div class="summary-section">
+        <div class="summary-box">
+            <table>
+                <tr><td colspan="2" class="s-title">Account Summary</td></tr>
+                <tr class="s-row"><td>Total Charges (Debit)</td><td class="text-right">{{ doc.get_formatted("total_charges") }}</td></tr>
+                <tr class="s-row"><td>Total Payments (Credit)</td><td class="text-right">{{ doc.get_formatted("total_payments") }}</td></tr>
+                {% if doc.total_discounts > 0 %}
+                <tr class="s-row"><td>Total Discounts</td><td class="text-right">{{ doc.get_formatted("total_discounts") }}</td></tr>
+                {% endif %}
+                {% if doc.outstanding_balance < 0 %}
+                <tr class="s-total" style="color:#1a7f37;">
+                    <td>Credit Due to Guest</td>
+                    <td class="text-right">{{ frappe.format(doc.outstanding_balance|abs, {"fieldtype":"Currency"}) }} CR</td>
+                </tr>
+                {% elif doc.outstanding_balance > 0 %}
+                <tr class="s-total"><td>Balance Due</td><td class="text-right">{{ doc.get_formatted("outstanding_balance") }}</td></tr>
+                {% else %}
+                <tr class="s-total" style="color:#1a7f37;"><td>Account Settled</td><td class="text-right">NIL</td></tr>
+                {% endif %}
+            </table>
         </div>
     </div>
+
+    <!-- ── SIGNATURE LINES ── -->
+    <div class="sig-section">
+        <table>
+            <tr>
+                <td>
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Guest Signature</div>
+                    <div class="sig-name">{{ guest_name }}</div>
+                    <div class="sig-name" style="margin-top:4px;">Date: _______________</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="folio-footer">
+        Thank you for staying with us. All amounts are in Nigerian Naira (₦). E&amp;OE.
+    </div>
+
 </div>

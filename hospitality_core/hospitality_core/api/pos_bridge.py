@@ -12,7 +12,7 @@ def process_room_charge(doc, method=None):
     # 1. Calculate how much of this invoice is being charged to the room
     room_charge_payment = 0
     for pay in doc.payments:
-        if pay.mode_of_payment == "Room Charge":
+        if pay.mode_of_payment == "Guest Account":
             room_charge_payment += flt(pay.amount)
             
     if room_charge_payment <= 0:
@@ -74,21 +74,36 @@ def process_room_charge(doc, method=None):
         if res_details.is_company_guest:
             bill_to = "Company"
 
-    # 5. POST EACH ITEM INDIVIDUALLY
-    for item in doc.items:
-        # Calculate the actual price for this item based on the room charge portion
-        posted_amount = flt(item.amount) * ratio
+    # 5. POST TO FOLIO (Grouped or Individual)
+    pos_profile = doc.get("pos_profile")
+    
+    # Check if we should group the transaction
+    group_item = None
+    group_desc = None
+    
+    if pos_profile in ["Restaurant", "Bush Bar Kitchen"]:
+        group_item = "Food"
+        group_desc = f"Food (POS: {doc.name})"
+    elif pos_profile in ["Fountain Bar", "Bush Bar Drinks"]:
+        group_item = "Beverages"
+        group_desc = f"Beverages (POS: {doc.name})"
         
+    if group_item:
+        # Group everything into one Folio Transaction
+        total_posted_amount = 0
+        for item in doc.items:
+            total_posted_amount += flt(item.amount) * ratio
+            
         txn = frappe.get_doc({
             "doctype": "Folio Transaction",
             "parent": folio_name,
             "parenttype": "Guest Folio",
             "parentfield": "transactions",
             "posting_date": doc.posting_date,
-            "item": item.item_code, # Uses the actual item bought (e.g., 'HEINEKEN')
-            "description": f"{item.item_name} (POS: {doc.name})",
-            "qty": item.qty,
-            "amount": posted_amount, # This is the sales price from the POS
+            "item": group_item,
+            "description": group_desc,
+            "qty": 1,
+            "amount": total_posted_amount,
             "bill_to": bill_to,
             "reference_doctype": "POS Invoice",
             "reference_name": doc.name,
@@ -96,9 +111,32 @@ def process_room_charge(doc, method=None):
         })
         txn.insert(ignore_permissions=True)
 
-        # Mirror to Company Folio if the guest is a corporate guest
         if bill_to == "Company":
             mirror_to_company_folio(txn)
+    else:
+        # POST EACH ITEM INDIVIDUALLY
+        for item in doc.items:
+            posted_amount = flt(item.amount) * ratio
+            
+            txn = frappe.get_doc({
+                "doctype": "Folio Transaction",
+                "parent": folio_name,
+                "parenttype": "Guest Folio",
+                "parentfield": "transactions",
+                "posting_date": doc.posting_date,
+                "item": item.item_code,
+                "description": f"{item.item_name} (POS: {doc.name})",
+                "qty": item.qty,
+                "amount": posted_amount,
+                "bill_to": bill_to,
+                "reference_doctype": "POS Invoice",
+                "reference_name": doc.name,
+                "is_invoiced": 1
+            })
+            txn.insert(ignore_permissions=True)
+
+            if bill_to == "Company":
+                mirror_to_company_folio(txn)
 
     # 6. Refresh the Folio Balance
     from hospitality_core.hospitality_core.api.folio import sync_folio_balance
@@ -180,12 +218,17 @@ def get_guest_details_from_room(room_number):
     if res_details.is_company_guest and res_details.company:
         customer = res_details.company
     elif res_details.guest:
-        # Fetch customer linked to the Guest
         customer = frappe.db.get_value("Guest", res_details.guest, "customer")
     
     if not customer:
         return {"error": _("No ERPNext Customer linked to the Guest/Reservation.")}
         
+    # Always prefer showing the actual guest name in POS UI
+    if res_details.guest:
+        guest_customer = frappe.db.get_value("Guest", res_details.guest, "customer")
+        if guest_customer:
+            customer = guest_customer
+            
     customer_name = frappe.db.get_value("Customer", customer, "customer_name")
 
     return {
@@ -193,3 +236,30 @@ def get_guest_details_from_room(room_number):
         "customer_name": customer_name,
         "folio": folio.name
     }
+
+@frappe.whitelist()
+def close_all_open_pos_sessions():
+    """
+    Closes all open POS sessions by creating and submitting a POS Closing Entry for each.
+    """
+    open_entries = frappe.get_all("POS Opening Entry", filters={"status": "Open"})
+    
+    from erpnext.accounts.doctype.pos_closing_entry.pos_closing_entry import make_closing_entry_from_opening
+    
+    count = 0
+    for entry in open_entries:
+        try:
+            opening_doc = frappe.get_doc("POS Opening Entry", entry.name)
+            closing_doc = make_closing_entry_from_opening(opening_doc)
+            
+            # For each payment reconciliation, set closing_amount = expected_amount to balance it
+            for pay in closing_doc.payment_reconciliation:
+                pay.closing_amount = pay.expected_amount
+                
+            closing_doc.insert(ignore_permissions=True)
+            closing_doc.submit()
+            count += 1
+        except Exception as e:
+            frappe.log_error(f"Failed to close POS Opening Entry {entry.name}: {str(e)}", "Auto Close POS Sessions")
+            
+    return count

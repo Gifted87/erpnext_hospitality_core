@@ -1,0 +1,214 @@
+{% set cashier_name = frappe.db.get_value("User", doc.owner, "full_name") or doc.owner %}
+{% set company_phone = frappe.db.get_value("Company", doc.company, "phone_no") or "" %}
+{# Resolve guest name from hotel_room -> folio -> reservation -> guest #}
+{% set _folio = frappe.db.get_value("Guest Folio", {"room": doc.hotel_room, "status": "Open"}, "name") if doc.hotel_room else None %}
+{% set _res = frappe.db.get_value("Guest Folio", _folio, "reservation") if _folio else None %}
+{% set _guest = frappe.db.get_value("Hotel Reservation", _res, "guest") if _res else None %}
+{% set guest_full_name = frappe.db.get_value("Guest", _guest, "full_name") if _guest else (doc.customer_name or "") %}
+{% set lh_name = frappe.db.get_default("letter_head") or frappe.db.get_value("Company", frappe.db.get_default("company"), "default_letter_head") %}
+{% set lh_content = frappe.db.get_value("Letter Head", lh_name, "content") if lh_name else "" %}
+
+<style>
+    .pos-receipt {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 9pt;
+        width: 100%;
+        max-width: 80mm;
+        margin: 0 auto;
+        color: #000;
+        font-weight: 900;
+        line-height: 1.0;
+    }
+    .pos-receipt .center { text-align: center; }
+    .pos-receipt .right  { text-align: right; }
+    .pos-receipt .bold   { font-weight: 900; }
+    .pos-receipt .divider {
+        border: none;
+        border-top: 1px dashed #000;
+        margin: 3px 0;
+    }
+    .pos-receipt .divider-solid {
+        border: none;
+        border-top: 2px solid #000;
+        margin: 3px 0;
+    }
+    .pos-receipt table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+    }
+    .pos-receipt table td {
+        padding: 0px;
+        vertical-align: top;
+    }
+    .pos-receipt .item-name { width: 50%; }
+    .pos-receipt .item-qty  { width: 10%; text-align: center; }
+    .pos-receipt .item-rate { width: 20%; text-align: right; }
+    .pos-receipt .item-amt  { width: 20%; text-align: right; }
+    .pos-receipt .totals-label { width: 70%; text-align: right; padding-right: 6px; }
+    .pos-receipt .totals-value { width: 30%; text-align: right; }
+    .pos-receipt .grand-total-row td { font-weight: bold; font-size: 10pt; padding-top: 4px; }
+    .pos-receipt .footer-note { font-size: 8pt; margin-top: 8px; }
+    .pos-receipt .cashier-line { margin-top: 8px; }
+</style>
+
+<div class="pos-receipt">
+
+    {# ===== LETTERHEAD ===== #}
+    {% if lh_content %}
+    <div style="margin-bottom: 4px; text-align: center; font-size: 8pt;">
+        {{ lh_content }}
+    </div>
+    <hr style="border: none; border-top: 1px dashed #000; margin: 3px 0;">
+    {% else %}
+    {# ===== HEADER (fallback) ===== #}
+    <div class="center bold" style="font-size: 12pt; margin-bottom: 2px;">
+        {{ doc.company }}
+    </div>
+    {% endif %}
+
+    {% if company_phone %}
+    <div class="center" style="font-size: 9pt;">Tel: {{ company_phone }}</div>
+    {% endif %}
+    <div class="center bold" style="margin-top: 6px; letter-spacing: 2px;">— RECEIPT —</div>
+
+    <hr class="divider-solid">
+
+    {# ===== META ===== #}
+    <table>
+        <tr>
+            <td><b>Receipt No:</b></td>
+            <td class="right">{{ doc.name }}</td>
+        </tr>
+        <tr>
+            <td><b>Date:</b></td>
+            <td class="right">{{ frappe.utils.formatdate(doc.posting_date) }}</td>
+        </tr>
+        <tr>
+            <td><b>Time:</b></td>
+            <td class="right">{{ (doc.posting_time | string)[:5] if doc.posting_time else "" }}</td>
+        </tr>
+        {% if guest_full_name %}
+        <tr>
+            <td><b>Guest:</b></td>
+            <td class="right">{{ guest_full_name }}</td>
+        </tr>
+        {% endif %}
+        {% if doc.hotel_room %}
+        <tr>
+            <td><b>Room:</b></td>
+            <td class="right">{{ doc.hotel_room }}</td>
+        </tr>
+        {% endif %}
+        {% if doc.pos_profile %}
+        <tr>
+            <td><b>POS:</b></td>
+            <td class="right">{{ doc.pos_profile }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <hr class="divider">
+
+    {# ===== ITEMS ===== #}
+    <table>
+        <thead>
+            <tr style="border-bottom: 1px solid #000;">
+                <td class="item-name"><b>Item</b></td>
+                <td class="item-qty"><b>Qty</b></td>
+                <td class="item-rate"><b>Rate</b></td>
+                <td class="item-amt"><b>Amt</b></td>
+            </tr>
+        </thead>
+        <tbody>
+            {%- for item in doc.items -%}
+            <tr>
+                <td class="item-name">
+                    {{ item.item_name }}
+                    {%- if item.item_name != item.item_code %}
+                    <br><span style="font-size:8pt;color:#555;">{{ item.item_code }}</span>
+                    {%- endif %}
+                </td>
+                <td class="item-qty">{{ item.qty | int if item.qty == item.qty | int else item.qty }}</td>
+                <td class="item-rate">{{ item.get_formatted("rate") }}</td>
+                <td class="item-amt">{{ item.get_formatted("amount") }}</td>
+            </tr>
+            {%- endfor -%}
+        </tbody>
+    </table>
+
+    <hr class="divider">
+
+    {# ===== TOTALS ===== #}
+    <table>
+        {% if doc.taxes and doc.taxes | length > 0 %}
+        <tr>
+            <td class="totals-label">Subtotal</td>
+            <td class="totals-value">{{ doc.get_formatted("total") }}</td>
+        </tr>
+        {%- for row in doc.taxes -%}
+        {%- if not row.included_in_print_rate -%}
+        <tr>
+            <td class="totals-label">
+                {% if '%' in (row.description or '') %}
+                    {{ row.description }}
+                {% else %}
+                    {{ row.description }}{% if row.rate %} ({{ row.rate }}%){% endif %}
+                {% endif %}
+            </td>
+            <td class="totals-value">{{ row.get_formatted("tax_amount", doc) }}</td>
+        </tr>
+        {%- endif -%}
+        {%- endfor -%}
+        {% endif %}
+        {%- if doc.discount_amount -%}
+        <tr>
+            <td class="totals-label">Discount</td>
+            <td class="totals-value">-{{ doc.get_formatted("discount_amount") }}</td>
+        </tr>
+        {%- endif -%}
+        <tr class="grand-total-row">
+            <td class="totals-label">GRAND TOTAL</td>
+            <td class="totals-value">{{ doc.get_formatted("grand_total") }}</td>
+        </tr>
+    </table>
+
+    <hr class="divider">
+
+    {# ===== PAYMENT ===== #}
+    <table>
+        {%- for row in doc.payments -%}
+        {% if row.amount %}
+        <tr>
+            <td class="totals-label">{{ row.mode_of_payment }}</td>
+            <td class="totals-value">{{ row.get_formatted("amount", doc) }}</td>
+        </tr>
+        {%- endif -%}
+        {%- endfor -%}
+        {%- if doc.change_amount -%}
+        <tr>
+            <td class="totals-label">Change</td>
+            <td class="totals-value">{{ doc.get_formatted("change_amount") }}</td>
+        </tr>
+        {%- endif -%}
+    </table>
+
+    <hr class="divider-solid">
+
+    {# ===== CASHIER ===== #}
+    <div class="cashier-line">
+        <b>Cashier:</b> {{ cashier_name }}
+    </div>
+
+    {# ===== FOOTER ===== #}
+    <div class="center footer-note" style="margin-top: 12px;">
+        {{ doc.terms or "" }}
+    </div>
+    <div class="center footer-note bold" style="margin-top: 4px;">
+        Thank you for your patronage!
+    </div>
+    <div class="center footer-note" style="margin-bottom: 8px;">
+        Please come again.
+    </div>
+
+</div>

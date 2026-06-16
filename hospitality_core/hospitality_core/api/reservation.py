@@ -176,3 +176,40 @@ def create_folio(reservation_doc):
     # Transfer existing balances from the Guest Balance Ledger
     from hospitality_core.hospitality_core.api.folio import transfer_existing_balances
     transfer_existing_balances(folio)
+
+@frappe.whitelist()
+def get_room_rate(room=None, rate_plan=None, room_type=None, arrival_date=None,
+                  discount_type=None, discount_value=None, is_complimentary=None):
+    """
+    Returns the base rate and discounted rate for the reservation form preview.
+    Called by hotel_reservation.js when room, rate_plan, or discount fields change.
+    """
+    from hospitality_core.hospitality_core.api.night_audit import get_rate
+    from frappe.utils import flt, nowdate
+
+    # Resolve room_type from room if not provided
+    if room and not room_type:
+        room_type = frappe.db.get_value("Hotel Room", room, "room_type")
+
+    if not room_type:
+        return {"base_rate": 0, "discount_amount": 0, "final_rate": 0}
+
+    date = arrival_date or nowdate()
+    base_rate = flt(get_rate(rate_plan, room_type, date))
+
+    # Calculate discount
+    discount_amount = 0.0
+    if frappe.utils.cint(is_complimentary):
+        discount_amount = base_rate
+    elif discount_type == "Percentage":
+        discount_amount = base_rate * (flt(discount_value) / 100.0)
+    elif discount_type == "Amount":
+        discount_amount = flt(discount_value)
+
+    final_rate = base_rate - discount_amount
+
+    return {
+        "base_rate": base_rate,
+        "discount_amount": discount_amount,
+        "final_rate": final_rate
+    }

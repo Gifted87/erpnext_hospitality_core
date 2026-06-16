@@ -1,0 +1,19 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2026-06-12 12:00:00.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "is_standard": "Yes",
+ "letter_head": "",
+ "module": "Hospitality Core",
+ "name": "Financial Activity Summary",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "POS Closing Entry",
+ "report_name": "Financial Activity Summary",
+ "report_type": "Script Report",
+ "roles": []
+}

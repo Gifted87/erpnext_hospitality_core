@@ -1,4 +1,4 @@
-frappe.query_reports["End of Day Report"] = {
+frappe.query_reports["Frontdesk End of Day Report"] = {
     "filters": [
         {
             "fieldname": "date",

@@ -5,7 +5,7 @@ frappe.query_reports["Gross Revenue Report"] = {
             "label": __("Company"),
             "fieldtype": "Link",
             "options": "Company",
-            "default": frappe.defaults.get_user_default("Company") || "Edo Heritage Hotel",
+            "default": frappe.defaults.get_user_default("Company"),
             "reqd": 1
         },
         {

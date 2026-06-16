@@ -1,0 +1,113 @@
+{% set lh_name = frappe.db.get_default("letter_head") or frappe.db.get_value("Company", frappe.db.get_default("company"), "default_letter_head") %}
+{% set lh_content = frappe.db.get_value("Letter Head", lh_name, "content") if lh_name else "" %}
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    .report-wrap * { box-sizing: border-box; }
+    .report-wrap { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; color: #222; }
+    .letterhead-block { margin-bottom: 10px; }
+    .report-header { text-align: center; padding-bottom: 15px; border-bottom: 2.5px solid #222; margin-bottom: 20px; }
+    .report-header h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+    .report-header h4 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #444; }
+    .report-header p { margin: 5px 0 0 0; font-size: 10px; color: #555; }
+    
+    .summary-bar { background: #f4f4f4; border: 1px solid #ddd; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; display: flex; justify-content: space-between; }
+    .summary-item { font-size: 10px; }
+    .summary-label { font-weight: 600; color: #555; }
+    .summary-val { font-weight: 700; color: #222; margin-left: 5px; }
+
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    .data-table th, .data-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; vertical-align: top; }
+    .data-table th { font-weight: 600; color: #fff; background: #222; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; }
+    .data-table tbody tr:nth-child(even) { background: #fafafa; }
+    .data-table tbody tr:hover { background: #f0f0f0; }
+    
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    
+    .status-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .status-in { background: #e3fcef; color: #0f5132; }
+    .status-out { background: #fff3cd; color: #856404; }
+    
+    .print-footer { text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #eee; font-size: 10px; color: #888; }
+</style>
+
+<!-- The context 'doc' will hold the date and the 'data' array injected via API -->
+<div class="report-wrap">
+
+    {% if lh_content %}
+    <div class="letterhead-block">
+        {{ lh_content }}
+    </div>
+    <hr style="border: 1px solid #ddd; margin-bottom: 10px;">
+    {% else %}
+    {% set comp = frappe.db.get_default("company") %}
+    {% set comp_name = frappe.db.get_value("Company", comp, "company_name") %}
+    <div class="report-header">
+        <h2>{{ comp_name }}</h2>
+    </div>
+    {% endif %}
+
+    <div class="report-header" style="{% if lh_content %}border-top: 1px solid #ddd; padding-top: 10px;{% endif %}">
+        <h4>House List</h4>
+        <p>As of {{ frappe.utils.formatdate(doc.date, "dd MMM yyyy") }}</p>
+    </div>
+
+    <div class="summary-bar">
+        <div class="summary-item">
+            <span class="summary-label">Total Occupied Rooms:</span>
+            <span class="summary-val">{{ doc.data|length }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Printed By:</span>
+            <span class="summary-val">{{ frappe.session.user_fullname }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Printed On:</span>
+            <span class="summary-val">{{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "dd MMM yyyy, HH:mm") }}</span>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 8%;">Room</th>
+                <th style="width: 22%;">Guest Name</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 10%;">Arrival</th>
+                <th style="width: 10%;">Departure</th>
+                <th style="width: 15%; text-align: right;">Balance Due (₦)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in doc.data %}
+            <tr>
+                <td style="font-weight: 700;">{{ row.room }}</td>
+                <td>
+                    {{ row.guest_name }}
+                    {% if row.company %}<br><span style="font-size: 10px; color: #666; font-style: italic;">{{ row.company }}</span>{% endif %}
+                </td>
+                <td>
+                    <span class="status-badge {{ 'status-in' if row.status == 'Checked In' else 'status-out' }}">
+                        {{ row.status }}
+                    </span>
+                </td>
+                <td>{{ frappe.utils.formatdate(row.arrival_date, "dd-MMM-yy") }}</td>
+                <td>{{ frappe.utils.formatdate(row.departure_date, "dd-MMM-yy") }}</td>
+                <td class="text-right" style="{{ 'color: #c92a2a; font-weight: 600;' if row.balance_due > 0 else 'color: #2b8a3e;' }}">
+                    {{ frappe.format(row.balance_due, {"fieldtype":"Currency"}) }}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center" style="padding: 30px; color: #888; font-style: italic;">No occupied rooms found for this date.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="print-footer">
+        Confidential Internal Document. Generated by Hospitality Core.
+    </div>
+
+</div>

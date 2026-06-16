@@ -25,6 +25,7 @@
         "is_complimentary",
         "discount_type",
         "discount_value",
+        "room_rate_preview",
         "is_company_guest",
         "company",
         "routing_instructions",
@@ -69,8 +70,7 @@
             "in_standard_filter": 1,
             "label": "Guest",
             "options": "Guest",
-            "reqd": 1,
-            "set_only_once": 1
+            "reqd": 1
         },
         {
             "fieldname": "room_type",
@@ -180,6 +180,12 @@
             "fieldname": "discount_value",
             "fieldtype": "Currency",
             "label": "Discount Value"
+        },
+        {
+            "fieldname": "room_rate_preview",
+            "fieldtype": "HTML",
+            "label": "Room Rate Preview",
+            "options": "<div id='room-rate-preview-box'></div>"
         },
         {
             "default": "1",

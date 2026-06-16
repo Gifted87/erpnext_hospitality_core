@@ -2,8 +2,8 @@ import frappe
 
 def initialize():
     print("--- Initializing Accounting Settings ---")
-    company = "Edo Heritage Hotel"
-    abbr = "EHH"
+    company = frappe.db.get_default("company") or "Edo Heritage Hotel"
+    abbr = frappe.get_cached_value("Company", company, "abbr") if company != "Edo Heritage Hotel" else "EHH"
     unearned_acc = f"Unearned Revenue - {abbr}"
     
     # 1. Ensure Account Exists
