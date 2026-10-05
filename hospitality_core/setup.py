@@ -55,15 +55,14 @@ def create_default_data():
         {"code": "POS-CHARGE", "name": "POS Charge"},
         {"code": "PAYMENT", "name": "Payment Credit"}
     ]
+    
     # Determine default Item Group
     target_item_group = "Services"
     if not frappe.db.exists("Item Group", "Services"):
-        # Find the root item group
         root_item_group = frappe.db.get_value("Item Group", 
             {"parent_item_group": ["in", ["", None]], "is_group": 1}, "name")
         
         if not root_item_group:
-             # Fallback: get any group
              root_item_group = frappe.db.get_value("Item Group", {"is_group": 1}, "name")
         
         if root_item_group:
@@ -75,10 +74,8 @@ def create_default_data():
                     "is_group": 0
                 }).insert(ignore_permissions=True)
             except Exception:
-                # If creation fails, fallback to using the root directly
                 target_item_group = root_item_group
         else:
-            # Last resort: grab any item group
             target_item_group = frappe.db.get_value("Item Group", {}, "name")
             
     for i in items:
@@ -87,5 +84,6 @@ def create_default_data():
             item.item_code = i["code"]
             item.item_name = i["name"]
             item.item_group = target_item_group
+            item.stock_uom = "Nos"
             item.is_stock_item = 0
             item.insert(ignore_permissions=True)
